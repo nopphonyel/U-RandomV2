@@ -63,4 +63,5 @@ public class SCTrack extends TrackType{
     protected int getTrackType() {
         return TrackType.SC_TRACK_TYPE;
     }
+
 }

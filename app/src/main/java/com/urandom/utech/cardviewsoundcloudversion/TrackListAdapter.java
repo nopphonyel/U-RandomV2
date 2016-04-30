@@ -1,6 +1,9 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -21,11 +24,10 @@ import java.util.List;
  */
 public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.TrackHolder> {
 
-    private List<TrackType> track;
+    private List<SCTrack> track;
     private Context context;
 
-    TrackListAdapter(Context mcontext , List<TrackType> newTrack)
-    {
+    TrackListAdapter(Context mcontext, List<SCTrack> newTrack) {
         context = mcontext;
         track = newTrack;
     }
@@ -37,7 +39,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
     @Override
     public TrackHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.inside_card , parent , false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.inside_card, parent, false);
         TrackHolder trackView = new TrackHolder(v);
         return trackView;
     }
@@ -46,13 +48,14 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     public void onBindViewHolder(TrackHolder holder, int position) {
         SCTrack track = (SCTrack) this.track.get(position);
 
+
         holder.trackTitle.setText(track.getSongTitle());
         holder.trackOwner.setText(track.getUserName());
 
-        if(track.getTrackGenre() == null || track.getTrackGenre().equalsIgnoreCase("")){
+        if (track.getTrackGenre() == null || track.getTrackGenre().equalsIgnoreCase("")) {
             holder.genreIcon.setVisibility(View.GONE);
             holder.genre.setVisibility(View.GONE);
-        }else {
+        } else {
             holder.genreIcon.setVisibility(View.VISIBLE);
             holder.genre.setVisibility(View.VISIBLE);
             holder.genre.setText(track.getTrackGenre());
@@ -70,7 +73,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         return track.size();
     }
 
-    public class TrackHolder extends  RecyclerView.ViewHolder{
+    public class TrackHolder extends RecyclerView.ViewHolder{
         CardView card;
         TextView trackTitle;
         TextView trackOwner;
@@ -81,20 +84,28 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         ImageView genreIcon;
         TextView genre;
 
+
         public TrackHolder(View itemView) {
             super(itemView);
-            card = (CardView)itemView.findViewById(R.id.card);
-            trackTitle = (TextView)itemView.findViewById(R.id.track_title);
-            trackDuration = (TextView)itemView.findViewById(R.id.track_duration);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-            trackCover = (ImageView)itemView.findViewById(R.id.track_art_work);
+                }
+            });
+            card = (CardView) itemView.findViewById(R.id.card);
+            trackTitle = (TextView) itemView.findViewById(R.id.track_title);
+            trackDuration = (TextView) itemView.findViewById(R.id.track_duration);
+
+            trackCover = (ImageView) itemView.findViewById(R.id.track_art_work);
 
             genreIcon = (ImageView) itemView.findViewById(R.id.genre_icon);
             genre = (TextView) itemView.findViewById(R.id.genre);
 
-            trackOwner = (TextView)itemView.findViewById(R.id.track_owner);
-            sourceIcon = (ImageView)itemView.findViewById(R.id.img_source);
+            trackOwner = (TextView) itemView.findViewById(R.id.track_owner);
+            sourceIcon = (ImageView) itemView.findViewById(R.id.img_source);
         }
+
     }
 }
 

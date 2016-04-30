@@ -18,9 +18,17 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 import retrofit.Callback;
@@ -29,16 +37,17 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener , SearchView.OnQueryTextListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener , SearchView.OnQueryTextListener {
 
-    private static final int ON_LOAD=1 , ERROR_LOAD=2 , LOAD_SUCCESS=3;
+    private static final int ON_LOAD = 1, ERROR_LOAD = 2, LOAD_SUCCESS = 3;
 
     private static final String TAG = "MainActivity";
-    private List<TrackType> allTrackList; //List of music
+    private ArrayList<SCTrack> allTrackList; //List of music
     private RecyclerView trackList;
-    private RecyclerView.LayoutManager trackListLayoutPotrait , trackListLayoutLandscape;
+    private RecyclerView.LayoutManager trackListLayoutPotrait, trackListLayoutLandscape;
     private TrackListAdapter trackListAdapter;
 
+    private Type listType;
     private FloatingActionButton shuffleBTN;
 
     private ProgressBar spinner;
@@ -48,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView errorText;
 
     private Callback<ArrayList<SCTrack>> callback;
-    private Callback<SCTrack> callbackTemp;
+    private Callback<JSONObject> callbackTemp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,14 +77,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         errorText = (TextView) findViewById(R.id.no_con);
         refreshBtn.setOnClickListener(this);
 
-        allTrackList = new ArrayList<TrackType>();
-        trackListAdapter = new TrackListAdapter(this , allTrackList);
+        allTrackList = new ArrayList<SCTrack>();
+        trackListAdapter = new TrackListAdapter(this, allTrackList);
 
-        trackList = (RecyclerView)findViewById(R.id.list_track);
+        trackList = (RecyclerView) findViewById(R.id.list_track);
         trackListLayoutPotrait = new LinearLayoutManager(this);
-        trackListLayoutLandscape = new StaggeredGridLayoutManager(2 , StaggeredGridLayoutManager.VERTICAL);
+        trackListLayoutLandscape = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
 
-        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) trackList.setLayoutManager(trackListLayoutPotrait);
+        listType = new TypeToken<ArrayList<SCTrack>>() {
+        }.getType();
+
+        //Check Orientation
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+            trackList.setLayoutManager(trackListLayoutPotrait);
         else trackList.setLayoutManager(trackListLayoutLandscape);
         trackList.setAdapter(trackListAdapter);
 
@@ -89,23 +103,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void failure(RetrofitError error) {
                 setVisibilityOfComponent(ERROR_LOAD);
-                Log.d(TAG , "<E!>: " + error);
+                Log.d(TAG, "<E!>: " + error);
             }
         };
 
-        /*callbackTemp = new Callback<SCTrackV2>() {
+        callbackTemp = new Callback<JSONObject>() {
             @Override
-            public void success(SCTrackV2 scTrack, Response response) {
+            public void success(JSONObject scTrackJsonObj, Response response) {
                 setVisibilityOfComponent(LOAD_SUCCESS);
-                reloadTrack(scTrack.getTrackList());
+                try {
+                    initializeArrayTrack(scTrackJsonObj.getJSONArray("tracks"));
+                }catch (JSONException e)
+                {
+                    Log.d(TAG,"<!> Error at callback" + e.toString());
+                }
+                reloadTrack(allTrackList);
             }
 
             @Override
             public void failure(RetrofitError error) {
                 setVisibilityOfComponent(ERROR_LOAD);
-                Log.d(TAG , "<E!>: " + error);
+                Log.d(TAG, "<E!>: " + error);
             }
-        };*/
+        };
 
         fetchRecentTrack();
     }
@@ -113,50 +133,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * Check orientation
+     *
      * @param newConfig
      */
     @Override
-    public void onConfigurationChanged(Configuration newConfig)
-    {
+    public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if(newConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
-        {
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             trackList.setLayoutManager(trackListLayoutPotrait);
         }
-        if(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)
-        {
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             trackList.setLayoutManager(trackListLayoutLandscape);
         }
     }
 
-    public void fetchRecentTrack()
-    {
-        RestAdapter restAdapt = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
-        SCService scService  = restAdapt.create(SCService.class);
-        getSupportActionBar().setTitle("Recent Popular Tracks");
-        setVisibilityOfComponent(ON_LOAD);
+    public void fetchRecentTrack() {
+        //RestAdapter restAdapt = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
+        //SCService scService  = restAdapt.create(SCService.class);
+        //getSupportActionBar().setTitle("Recent Popular Tracks");
+        //setVisibilityOfComponent(ON_LOAD);
         //scService.getPopularTrack(callback);
         //scService.getRecentTracks(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()), callback);
-        scService.getPopularTrack(callback);
+        //scService.getPopularTrack(callback);
+
+        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
+        SCService scService = restAdapter.create(SCService.class);
+        getSupportActionBar().setTitle("Recent Popular Tracks");
+        setVisibilityOfComponent(ON_LOAD);
+        scService.getSpecificTracks("Electronics",callback);
     }
 
-    public void setVisibilityOfComponent (int id)
-    {
-        if(id == LOAD_SUCCESS)
-        {
+    public void setVisibilityOfComponent(int id) {
+        if (id == LOAD_SUCCESS) {
             spinner.setVisibility(View.GONE);
             loadingText.setVisibility(View.GONE);
             refreshBtn.setVisibility(View.GONE);
             errorText.setVisibility(View.GONE);
             trackList.setVisibility(View.VISIBLE);
-        }else if (id == ERROR_LOAD)
-        {
+        } else if (id == ERROR_LOAD) {
             spinner.setVisibility(View.GONE);
             loadingText.setVisibility(View.GONE);
             trackList.setVisibility(View.GONE);
             refreshBtn.setVisibility(View.VISIBLE);
             errorText.setVisibility(View.VISIBLE);
-        }else if(id == ON_LOAD){
+        } else if (id == ON_LOAD) {
             spinner.setVisibility(View.VISIBLE);
             loadingText.setVisibility(View.VISIBLE);
             trackList.setVisibility(View.GONE);
@@ -167,13 +187,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * To load a track
+     *
      * @param scTracks List of SoundCloud track
      */
-    public void reloadTrack(ArrayList<SCTrack> scTracks)
-    {
+    public void reloadTrack(ArrayList<SCTrack> scTracks) {
         allTrackList.clear();
         allTrackList.addAll(scTracks);
         trackListAdapter.notifyDataSetChanged();
+
+        Log.d(TAG, allTrackList.toString());
     }
 
     /*public void reloadTrack2(SCTrack scTracks)
@@ -185,15 +207,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if(v.getId() == R.id.retry_btn )
-        {
+        if (v.getId() == R.id.retry_btn) {
             fetchRecentTrack();
             //Log.d(TAG,new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
         }
-        if(v.getId() == R.id.shuffle_btn)
-        {
+        if (v.getId() == R.id.shuffle_btn) {
             long seed = System.nanoTime();
-            Collections.shuffle(allTrackList , new Random(seed));
+            Collections.shuffle(allTrackList, new Random(seed));
             trackListAdapter.notifyDataSetChanged();
         }
     }
@@ -217,5 +237,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onQueryTextChange(String newText) {
         return false;
+    }
+
+
+
+    /**
+     * Initialize Array list track
+     * Call this inside Callback
+     */
+    public void initializeArrayTrack(JSONArray jsonArray){
+        for(int i=0; i< jsonArray.length() ; i++){
+        }
     }
 }
