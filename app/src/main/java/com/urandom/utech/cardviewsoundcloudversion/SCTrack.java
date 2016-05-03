@@ -2,10 +2,45 @@ package com.urandom.utech.cardviewsoundcloudversion;
 
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
 /**
  * Created by nopphon on 4/18/16.
  */
+@Parcel
 public class SCTrack extends TrackType{
+
+    public void setSongTitle(String songTitle) {
+        this.songTitle = songTitle;
+    }
+
+    public void setTrackID(String trackID) {
+        this.trackID = trackID;
+    }
+
+    public void setTrackURL(String trackURL) {
+        this.trackURL = trackURL;
+    }
+
+    public void setArtWorkURL(String artWorkURL) {
+        this.artWorkURL = artWorkURL;
+    }
+
+    public void setUser(Object user) {
+        this.user = user;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public SCTrack(){
+
+    }
 
     @SerializedName("title")
     private String songTitle;
@@ -63,5 +98,8 @@ public class SCTrack extends TrackType{
     protected int getTrackType() {
         return TrackType.SC_TRACK_TYPE;
     }
+
+
+
 
 }

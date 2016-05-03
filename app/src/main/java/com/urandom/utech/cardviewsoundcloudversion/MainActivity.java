@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TrackListAdapter trackListAdapter;
 
     private Type listType;
-    private FloatingActionButton shuffleBTN;
+    private FloatingActionButton nowPlayingBTN;
 
     private ProgressBar spinner;
     private TextView loadingText;
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView errorText;
 
     private Callback<ArrayList<SCTrack>> callback;
-    private Callback<JSONObject> callbackTemp;
+    private Callback<SCTrackV2> callbackTemp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_toolbar);
 
-        shuffleBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
-        shuffleBTN.setOnClickListener(this);
+        nowPlayingBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
+        nowPlayingBTN.setOnClickListener(this);
 
         loadingText = (TextView) findViewById(R.id.loading_text);
         spinner = (ProgressBar) findViewById(R.id.progressBar);
@@ -84,8 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         trackListLayoutPotrait = new LinearLayoutManager(this);
         trackListLayoutLandscape = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
 
-        listType = new TypeToken<ArrayList<SCTrack>>() {
-        }.getType();
+        listType = new TypeToken<ArrayList<SCTrack>>(){}.getType();
 
         //Check Orientation
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
@@ -107,23 +106,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
 
-        callbackTemp = new Callback<JSONObject>() {
+        callbackTemp = new Callback<SCTrackV2>() {
             @Override
-            public void success(JSONObject scTrackJsonObj, Response response) {
+            public void success(SCTrackV2 scTrackJsonObj, Response response) {
                 setVisibilityOfComponent(LOAD_SUCCESS);
-                try {
-                    initializeArrayTrack(scTrackJsonObj.getJSONArray("tracks"));
-                }catch (JSONException e)
-                {
-                    Log.d(TAG,"<!> Error at callback" + e.toString());
-                }
+                initializeArrayTrack(scTrackJsonObj.getTrackList());
                 reloadTrack(allTrackList);
             }
 
             @Override
             public void failure(RetrofitError error) {
                 setVisibilityOfComponent(ERROR_LOAD);
-                Log.d(TAG, "<E!>: " + error);
+                Log.d(TAG, "<E!> Error at Callback: " + error);
             }
         };
 
@@ -148,19 +142,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void fetchRecentTrack() {
-        //RestAdapter restAdapt = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
-        //SCService scService  = restAdapt.create(SCService.class);
+        RestAdapter restAdapt = new RestAdapter.Builder().setEndpoint(Config.API_V2_URL).build();
+        SCServiceV2 scService  = restAdapt.create(SCServiceV2.class);
         //getSupportActionBar().setTitle("Recent Popular Tracks");
-        //setVisibilityOfComponent(ON_LOAD);
+        setVisibilityOfComponent(ON_LOAD);
+        scService.getPopularTrack(callbackTemp);
         //scService.getPopularTrack(callback);
         //scService.getRecentTracks(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()), callback);
         //scService.getPopularTrack(callback);
 
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
+        /*RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
         SCService scService = restAdapter.create(SCService.class);
         getSupportActionBar().setTitle("Recent Popular Tracks");
         setVisibilityOfComponent(ON_LOAD);
-        scService.getSpecificTracks("Electronics",callback);
+        scService.getSpecificTracks("Electronics",callback);*/
     }
 
     public void setVisibilityOfComponent(int id) {
@@ -239,14 +234,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
-
-
     /**
      * Initialize Array list track
      * Call this inside Callback
      */
     public void initializeArrayTrack(JSONArray jsonArray){
+        SCTrack tempForInsertToArray = new SCTrack();
+        JSONObject jsonPoint;
         for(int i=0; i< jsonArray.length() ; i++){
+            try {
+                jsonPoint = jsonArray.getJSONObject(i);
+
+                tempForInsertToArray.setSongTitle(jsonPoint.getString("title"));
+                tempForInsertToArray.setArtWorkURL(jsonPoint.getString("artwork_url"));
+                tempForInsertToArray.setGenre(jsonPoint.getString("genre"));
+                tempForInsertToArray.setDuration(jsonPoint.getString("duration"));
+                tempForInsertToArray.setTrackURL(jsonPoint.getString("uri"));
+                tempForInsertToArray.setUser(jsonPoint.get("user"));
+
+                allTrackList.add(tempForInsertToArray);
+            }catch (JSONException e) {
+                Log.d(TAG, "Error at initializing Array");
+            }
         }
     }
 }

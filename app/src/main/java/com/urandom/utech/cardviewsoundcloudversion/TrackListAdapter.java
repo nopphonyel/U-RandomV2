@@ -47,8 +47,6 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     @Override
     public void onBindViewHolder(TrackHolder holder, int position) {
         SCTrack track = (SCTrack) this.track.get(position);
-
-
         holder.trackTitle.setText(track.getSongTitle());
         holder.trackOwner.setText(track.getUserName());
 
@@ -87,12 +85,6 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
         public TrackHolder(View itemView) {
             super(itemView);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                }
-            });
             card = (CardView) itemView.findViewById(R.id.card);
             trackTitle = (TextView) itemView.findViewById(R.id.track_title);
             trackDuration = (TextView) itemView.findViewById(R.id.track_duration);

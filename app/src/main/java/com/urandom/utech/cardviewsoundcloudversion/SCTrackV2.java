@@ -1,7 +1,13 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
+import com.google.gson.JsonArray;
 import com.google.gson.annotations.SerializedName;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,9 +16,9 @@ import java.util.List;
 public class SCTrackV2 {
 
     @SerializedName("tracks")
-    private List<SCTrack> tracks;
+    private JSONArray tracks;
 
-    public List<SCTrack> getTrackList()
+    public JSONArray getTrackList()
     {
         return tracks;
     }
