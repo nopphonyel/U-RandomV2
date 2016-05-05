@@ -6,6 +6,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
 import org.w3c.dom.Text;
 
 import java.util.List;
@@ -48,7 +50,11 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     public void onBindViewHolder(TrackHolder holder, int position) {
         SCTrack track = (SCTrack) this.track.get(position);
         holder.trackTitle.setText(track.getSongTitle());
-        holder.trackOwner.setText(track.getUserName());
+        try {
+            holder.trackOwner.setText(track.getUserName());
+        } catch (JSONException e) {
+            Log.e("ADAPTER" , "SET USER ERROR : "+e.toString());
+        }
 
         if (track.getTrackGenre() == null || track.getTrackGenre().equalsIgnoreCase("")) {
             holder.genreIcon.setVisibility(View.GONE);

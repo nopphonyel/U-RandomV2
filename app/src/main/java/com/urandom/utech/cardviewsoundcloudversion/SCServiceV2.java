@@ -1,9 +1,5 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
-import com.google.gson.JsonObject;
-
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 import retrofit.Callback;
@@ -19,7 +15,7 @@ public interface SCServiceV2 {
     String LIMITER = "&limit=200&offset=0&linked_partitioning=0";
 
     @GET("/explore/Popular+Music?client_id="+Config.CLIENT_ID)
-    void getPopularTrack(@Query(LIMITER) Callback<SCTrackV2> cb);
+    void getPopularTrack(@Query(LIMITER) Callback<TrackObject> cb);
 
     @GET("/")
     void getPopularTrackByGenre(@Query("/explore/") String genre , Callback<ArrayList<SCTrack>> cb);

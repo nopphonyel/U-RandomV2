@@ -2,12 +2,13 @@ package com.urandom.utech.cardviewsoundcloudversion;
 
 import com.google.gson.annotations.SerializedName;
 
-import org.parceler.Parcel;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 /**
  * Created by nopphon on 4/18/16.
  */
-@Parcel
 public class SCTrack extends TrackType{
 
     public void setSongTitle(String songTitle) {
@@ -26,7 +27,7 @@ public class SCTrack extends TrackType{
         this.artWorkURL = artWorkURL;
     }
 
-    public void setUser(Object user) {
+    public void setUser(JSONObject user) {
         this.user = user;
     }
 
@@ -42,25 +43,18 @@ public class SCTrack extends TrackType{
 
     }
 
-    @SerializedName("title")
     private String songTitle;
 
-    @SerializedName("id")
     private String trackID;
 
-    @SerializedName("stream_url")
     private String trackURL;
 
-    @SerializedName("artwork_url")
     private String artWorkURL;
 
-    @SerializedName("user")
-    private Object user;
+    private JSONObject user;
 
-    @SerializedName("genre")
     private String genre;
 
-    @SerializedName("duration")
     private String duration;
 
     public String getTrackDuraion()
@@ -72,11 +66,8 @@ public class SCTrack extends TrackType{
     public String getTrackGenre()
     { return genre;}
 
-    public String getUserName() {
-        String user = this.user.toString();
-        int position_from = user.indexOf("username=")+9;
-        int position_to = user.indexOf("last_modified=")-2;
-        return user.substring(position_from,position_to);
+    public String getUserName() throws JSONException {
+        return user.get("full_name").toString();
     }
 
     public String getSongTitle() {
@@ -94,12 +85,5 @@ public class SCTrack extends TrackType{
     public String getArtWorkURL() {
         return artWorkURL;
     }
-
-    protected int getTrackType() {
-        return TrackType.SC_TRACK_TYPE;
-    }
-
-
-
 
 }
