@@ -67,7 +67,7 @@ public class SCTrack extends TrackType{
     { return genre;}
 
     public String getUserName() throws JSONException {
-        return user.get("full_name").toString();
+        return user.get("username").toString();
     }
 
     public String getSongTitle() {

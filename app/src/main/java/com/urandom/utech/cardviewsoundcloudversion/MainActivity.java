@@ -1,7 +1,6 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.content.res.Configuration;
-import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -10,7 +9,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,24 +16,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.google.gson.reflect.TypeToken;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.parceler.Parcel;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener , SearchView.OnQueryTextListener {
 
@@ -57,10 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static Button refreshBtn;
     private static TextView errorText;
 
-    private Callback<ArrayList<SCTrack>> callback;
-    private Callback<TrackObject> callbackTemp;
-
-    StrictMode.ThreadPolicy networkPolicy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+    private MenuItem  search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +52,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_toolbar);
 
-        StrictMode.setThreadPolicy(networkPolicy);
-
         nowPlayingBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
+        nowPlayingBTN.setImageDrawable(null);
         nowPlayingBTN.setOnClickListener(this);
 
         loadingText = (TextView) findViewById(R.id.loading_text);
@@ -82,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         errorText = (TextView) findViewById(R.id.no_con);
         refreshBtn.setOnClickListener(this);
 
-        //allTrackList = new ArrayList<SCTrack>();
         trackListAdapter = new TrackListAdapter(this, SCTrackList.TRACK);
 
         trackList = (RecyclerView) findViewById(R.id.list_track);
@@ -97,44 +77,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else trackList.setLayoutManager(trackListLayoutLandscape);
         trackList.setAdapter(trackListAdapter);
 
-        callback = new Callback<ArrayList<SCTrack>>() {
-            @Override
-            public void success(ArrayList<SCTrack> tracks, Response response) {
-                setVisibilityOfComponent(LOAD_SUCCESS);
-                reloadTrack(tracks);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                setVisibilityOfComponent(ERROR_LOAD);
-                Log.d(TAG, "<E!>: " + error);
-            }
-        };
-
-        callbackTemp = new Callback<TrackObject>() {
-            @Override
-            public void success(TrackObject scTrackJsonObj, Response response) {
-                setVisibilityOfComponent(LOAD_SUCCESS);
-                initializeArrayTrack(scTrackJsonObj.getTrackList());
-                reloadTrack(allTrackList);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                setVisibilityOfComponent(ERROR_LOAD);
-                Log.d(TAG, "<E!> Error at Callback: " + error);
-            }
-        };
-
         fetchRecentTrack();
     }
 
-
-    /**
-     * Check orientation
-     *
-     * @param newConfig
-     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -147,23 +92,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void fetchRecentTrack() {
-        //RestAdapter restAdapt = new RestAdapter.Builder().setEndpoint(Config.API_V2_URL).build();
-        //SCServiceV2 scService  = restAdapt.create(SCServiceV2.class);
-        //getSupportActionBar().setTitle("Recent Popular Tracks");
-        //setVisibilityOfComponent(ON_LOAD);
-        //scService.getPopularTrack(callbackTemp);
-        //scService.getPopularTrack(callback);
-        //scService.getRecentTracks(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()), callback);
-        //scService.getPopularTrack(callback);
-
-        /*RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(Config.API_URL).build();
-        SCService scService = restAdapter.create(SCService.class);
-        getSupportActionBar().setTitle("Recent Popular Tracks");
         setVisibilityOfComponent(ON_LOAD);
-        scService.getSpecificTracks("Electronics",callback);*/
+        SCTrackList.TRACK.clear();
+        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART);
+        shuffleTrack();
+    }
 
-        setVisibilityOfComponent(ON_LOAD);
-        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR);
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.retry_btn) {
+            fetchRecentTrack();
+        }
+        if (v.getId() == R.id.shuffle_btn) {
+            Toast.makeText(this , "Now playing button / shuffle when there is no playing music" , Toast.LENGTH_SHORT).show();
+            trackListAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+
+        search = menu.findItem(R.id.search);
+
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(search);
+        searchView.setOnQueryTextListener(this);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.refresh_track :
+                shuffleTrack();
+                fetchRecentTrack();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void shuffleTrack()
+    {
+        long seed = System.nanoTime();
+        Collections.shuffle(SCTrackList.TRACK, new Random(seed));
+        trackListAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        return false;
     }
 
     public static void setVisibilityOfComponent(int id) {
@@ -188,82 +172,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    /**
-     * To load a track
-     *
-     * @param scTracks List of SoundCloud track
-     */
-    public void reloadTrack(ArrayList<SCTrack> scTracks) {
-        allTrackList.clear();
-        allTrackList.addAll(scTracks);
-        trackListAdapter.notifyDataSetChanged();
-
-        Log.d(TAG, allTrackList.toString());
-    }
-
-    /*public void reloadTrack2(SCTrack scTracks)
-    {
-        allTrackList.clear();
-        allTrackList.add(scTracks);
-        trackListAdapter.notifyDataSetChanged();
-    }*/
-
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.retry_btn) {
-            fetchRecentTrack();
-            //Log.d(TAG,new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
-        }
-        if (v.getId() == R.id.shuffle_btn) {
-            long seed = System.nanoTime();
-            Collections.shuffle(SCTrackList.TRACK, new Random(seed));
-            trackListAdapter.notifyDataSetChanged();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.options_menu, menu);
-
-        final MenuItem item = menu.findItem(R.id.search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
-        searchView.setOnQueryTextListener(this);
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
-    }
-
-    /**
-     * Initialize Array list track
-     * Call this inside Callback
-     */
-    public void initializeArrayTrack(JSONArray jsonArray){
-        SCTrack tempForInsertToArray = new SCTrack();
-        JSONObject jsonPoint;
-        for(int i=0; i< jsonArray.length() ; i++){
-            try {
-                jsonPoint = jsonArray.getJSONObject(i);
-
-                tempForInsertToArray.setSongTitle(jsonPoint.getString("title"));
-                tempForInsertToArray.setArtWorkURL(jsonPoint.getString("artwork_url"));
-                tempForInsertToArray.setGenre(jsonPoint.getString("genre"));
-                tempForInsertToArray.setDuration(jsonPoint.getString("duration"));
-                tempForInsertToArray.setTrackURL(jsonPoint.getString("uri"));
-                tempForInsertToArray.setUser(jsonPoint.getJSONObject("user"));
-
-                allTrackList.add(tempForInsertToArray);
-            }catch (JSONException e) {
-                Log.d(TAG, "Error at initializing Array");
-            }
-        }
-    }
 }

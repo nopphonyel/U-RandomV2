@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -65,6 +66,8 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
             holder.genre.setText(track.getTrackGenre());
         }
 
+        holder.setPosition(position);
+
         holder.trackDuration.setText(track.getTrackDuraion());
 
         Picasso.with(context).load(R.drawable.ic_soundcloud_track).into(holder.sourceIcon);
@@ -77,7 +80,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         return track.size();
     }
 
-    public class TrackHolder extends RecyclerView.ViewHolder{
+    public class TrackHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         CardView card;
         TextView trackTitle;
         TextView trackOwner;
@@ -87,10 +90,11 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
         ImageView genreIcon;
         TextView genre;
-
+        int trackPosition;
 
         public TrackHolder(View itemView) {
             super(itemView);
+            itemView.setOnClickListener(this);
             card = (CardView) itemView.findViewById(R.id.card);
             trackTitle = (TextView) itemView.findViewById(R.id.track_title);
             trackDuration = (TextView) itemView.findViewById(R.id.track_duration);
@@ -104,6 +108,18 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
             sourceIcon = (ImageView) itemView.findViewById(R.id.img_source);
         }
 
+        public void setPosition(int pos)
+        {
+            trackPosition = pos;
+        }
+
+        @Override
+        public void onClick(View v) {
+            Toast.makeText(context , "Clicked at position " + trackPosition , Toast.LENGTH_SHORT).show();
+            SCTrackList.setTrackPlayingNo(trackPosition);
+            context.startActivity(new Intent(context , NowPlaying.class));
+            //context.startActivity(new Intent());
+        }
     }
 }
 
