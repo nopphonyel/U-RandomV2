@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener , SearchView.OnQueryTextListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final int ON_LOAD = 1, ERROR_LOAD = 2, LOAD_SUCCESS = 3;
 
@@ -42,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static Button refreshBtn;
     private static TextView errorText;
 
-    private MenuItem  search;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setIcon(R.drawable.ic_toolbar);
 
         nowPlayingBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
-        nowPlayingBTN.setImageDrawable(null);
+        nowPlayingBTN.setImageResource(android.R.drawable.ic_media_play);
         nowPlayingBTN.setOnClickListener(this);
 
         loadingText = (TextView) findViewById(R.id.loading_text);
@@ -63,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         errorText = (TextView) findViewById(R.id.no_con);
         refreshBtn.setOnClickListener(this);
 
-        trackListAdapter = new TrackListAdapter(this, SCTrackList.TRACK);
+        trackListAdapter = new TrackListAdapter(this, ProgramStaticConstant.TRACK);
 
         trackList = (RecyclerView) findViewById(R.id.list_track);
         trackListLayoutPotrait = new LinearLayoutManager(this);
@@ -93,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void fetchRecentTrack() {
         setVisibilityOfComponent(ON_LOAD);
-        SCTrackList.TRACK.clear();
+        ProgramStaticConstant.TRACK.clear();
         trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART);
         shuffleTrack();
     }
@@ -104,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fetchRecentTrack();
         }
         if (v.getId() == R.id.shuffle_btn) {
-            Toast.makeText(this , "Now playing button / shuffle when there is no playing music" , Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Now playing button / shuffle when there is no playing music", Toast.LENGTH_SHORT).show();
             trackListAdapter.notifyDataSetChanged();
         }
     }
@@ -113,18 +111,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
-
-        search = menu.findItem(R.id.search);
-
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(search);
-        searchView.setOnQueryTextListener(this);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch (item.getItemId()){
-            case R.id.refresh_track :
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.refresh_track:
                 shuffleTrack();
                 fetchRecentTrack();
                 return true;
@@ -133,21 +126,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void shuffleTrack()
-    {
+    private void shuffleTrack() {
         long seed = System.nanoTime();
-        Collections.shuffle(SCTrackList.TRACK, new Random(seed));
+        Collections.shuffle(ProgramStaticConstant.TRACK, new Random(seed));
         trackListAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
     }
 
     public static void setVisibilityOfComponent(int id) {

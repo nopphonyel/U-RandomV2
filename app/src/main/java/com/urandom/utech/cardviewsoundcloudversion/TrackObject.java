@@ -135,7 +135,7 @@ public class TrackObject {
                 scTrackPointer.setDuration(jsonObjectGetter.getString("duration"));
                 scTrackPointer.setTrackURL(jsonObjectGetter.getString("uri"));
                 scTrackPointer.setUser(jsonObjectGetter.getJSONObject("user"));
-                SCTrackList.TRACK.add(scTrackPointer);
+                ProgramStaticConstant.TRACK.add(scTrackPointer);
                 scTrackPointer = new SCTrack();
             }
         } catch (JSONException e) {
@@ -160,7 +160,7 @@ public class TrackObject {
                 scTrackPointer.setDuration(jsonObjectGetter.getString("duration"));
                 scTrackPointer.setTrackURL(jsonObjectGetter.getString("uri"));
                 scTrackPointer.setUser(jsonObjectGetter.getJSONObject("user"));
-                SCTrackList.TRACK.add(scTrackPointer);
+                ProgramStaticConstant.TRACK.add(scTrackPointer);
                 scTrackPointer = new SCTrack();
             }
         } catch (JSONException e) {

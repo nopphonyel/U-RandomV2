@@ -116,7 +116,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         @Override
         public void onClick(View v) {
             Toast.makeText(context , "Clicked at position " + trackPosition , Toast.LENGTH_SHORT).show();
-            SCTrackList.setTrackPlayingNo(trackPosition);
+            ProgramStaticConstant.setTrackPlayingNo(trackPosition);
             context.startActivity(new Intent(context , NowPlaying.class));
             //context.startActivity(new Intent());
         }
