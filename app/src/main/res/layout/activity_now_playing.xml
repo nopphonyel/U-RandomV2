@@ -3,14 +3,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@drawable/background"
+    android:padding="4dp"
+    android:clipToPadding="false"
     tools:context="com.urandom.utech.cardviewsoundcloudversion.NowPlaying">
 
+    <ImageView
+        android:layout_marginTop="60dp"
+        android:id="@+id/playing_track_cover"
+        android:src="@drawable/default_cover"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:background="@color/cardview_dark_background"
+        android:elevation="4dp"/>
+
+    <TextView
+        android:id="@+id/playing_track_title"
+        android:layout_below="@+id/playing_track_cover"
+        android:layout_marginTop="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+        android:textColor="#454545"
+        android:layout_centerHorizontal="true"
+        android:text="TRACK_TITLE"/>
+
     <ImageButton
+        android:src = "@mipmap/ic_action_unlove"
+        android:layout_below="@+id/playing_track_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/loveButton"

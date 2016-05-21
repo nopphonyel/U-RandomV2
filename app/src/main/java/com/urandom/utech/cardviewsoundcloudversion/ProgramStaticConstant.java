@@ -1,6 +1,7 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
  */
 public class ProgramStaticConstant {
     public static ArrayList<SCTrack> TRACK = new ArrayList<SCTrack>();
-    public static ArrayList<SCTrack> FAVORITE_TRACK = new ArrayList<SCTrack>();
+    public static HashMap<String , SCTrack> FAVORITE_TRACK = new HashMap<String, SCTrack>();
     private static int TRACK_PLAYING_NO = 0;
     private static boolean IS_PLAYING = false;
 

@@ -2,8 +2,6 @@ package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -115,8 +113,8 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(context , "Clicked at position " + trackPosition , Toast.LENGTH_SHORT).show();
             ProgramStaticConstant.setTrackPlayingNo(trackPosition);
+            //Toast.makeText(context , "URL:"+ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackURL(), Toast.LENGTH_LONG).show();
             context.startActivity(new Intent(context , NowPlaying.class));
             //context.startActivity(new Intent());
         }

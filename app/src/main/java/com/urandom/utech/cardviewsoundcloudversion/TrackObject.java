@@ -135,6 +135,7 @@ public class TrackObject {
                 scTrackPointer.setDuration(jsonObjectGetter.getString("duration"));
                 scTrackPointer.setTrackURL(jsonObjectGetter.getString("uri"));
                 scTrackPointer.setUser(jsonObjectGetter.getJSONObject("user"));
+                scTrackPointer.setTrackID(jsonObjectGetter.getString("id"));
                 ProgramStaticConstant.TRACK.add(scTrackPointer);
                 scTrackPointer = new SCTrack();
             }

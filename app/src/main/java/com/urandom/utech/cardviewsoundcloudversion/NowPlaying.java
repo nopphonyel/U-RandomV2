@@ -1,18 +1,18 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.app.Activity;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.ImageButton;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class NowPlaying extends Activity implements View.OnClickListener {
 
+    private static String TAG_PLAYING = new String("NowPlaying.class");
     private static final int LOVE = 1 , UNLOVE = 0;
     ImageButton loveBtn;
 
@@ -26,10 +26,10 @@ public class NowPlaying extends Activity implements View.OnClickListener {
 
         loveBtn = (ImageButton) findViewById(R.id.loveButton);
 
-        if(ProgramStaticConstant.FAVORITE_TRACK.contains(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()))){
-            loveBtn.setImageResource(android.R.drawable.star_on);
+        if(ProgramStaticConstant.FAVORITE_TRACK.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())){
+            loveBtn.setImageResource(R.mipmap.ic_action_love);
         }else{
-            loveBtn.setImageResource(android.R.drawable.star_off);
+            loveBtn.setImageResource(R.mipmap.ic_action_unlove);
         }
         addOnClick();
     }
@@ -41,12 +41,16 @@ public class NowPlaying extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if(v == loveBtn){
-            if(ProgramStaticConstant.FAVORITE_TRACK.contains(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()))){
-                loveBtn.setImageResource(android.R.drawable.star_off);
-                ProgramStaticConstant.FAVORITE_TRACK.remove(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()));
-            }else {
-                loveBtn.setImageResource(android.R.drawable.star_on);
-                ProgramStaticConstant.FAVORITE_TRACK.add(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()));
+            //Click to add this track to favorite
+            if(ProgramStaticConstant.FAVORITE_TRACK.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())){
+                loveBtn.setImageResource(R.mipmap.ic_action_unlove);
+                Log.e(TAG_PLAYING , ""+ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID());
+                ProgramStaticConstant.FAVORITE_TRACK.remove(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID());
+            }
+            //Click to remove this track from favorite
+            else {
+                loveBtn.setImageResource(R.mipmap.ic_action_love);
+                ProgramStaticConstant.FAVORITE_TRACK.put(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID() , ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()));
             }
         }
     }
