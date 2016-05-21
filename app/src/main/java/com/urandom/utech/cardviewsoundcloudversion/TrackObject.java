@@ -133,6 +133,7 @@ public class TrackObject {
                 scTrackPointer.setArtWorkURL(jsonObjectGetter.getString("artwork_url"));
                 scTrackPointer.setGenre(jsonObjectGetter.getString("genre"));
                 scTrackPointer.setDuration(jsonObjectGetter.getString("duration"));
+                scTrackPointer.setStreamURL(jsonObjectGetter.getString("stream_url"));
                 scTrackPointer.setTrackURL(jsonObjectGetter.getString("uri"));
                 scTrackPointer.setUser(jsonObjectGetter.getJSONObject("user"));
                 scTrackPointer.setTrackID(jsonObjectGetter.getString("id"));
@@ -159,6 +160,7 @@ public class TrackObject {
                 scTrackPointer.setArtWorkURL(jsonObjectGetter.getString("artwork_url"));
                 scTrackPointer.setGenre(jsonObjectGetter.getString("genre"));
                 scTrackPointer.setDuration(jsonObjectGetter.getString("duration"));
+                scTrackPointer.setStreamURL(jsonObjectGetter.getString("stream_url"));
                 scTrackPointer.setTrackURL(jsonObjectGetter.getString("uri"));
                 scTrackPointer.setUser(jsonObjectGetter.getJSONObject("user"));
                 ProgramStaticConstant.TRACK.add(scTrackPointer);

@@ -28,6 +28,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     private List<SCTrack> track;
     private Context context;
 
+
     TrackListAdapter(Context mcontext, List<SCTrack> newTrack) {
         context = mcontext;
         track = newTrack;

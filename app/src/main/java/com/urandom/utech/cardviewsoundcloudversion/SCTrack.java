@@ -58,6 +58,16 @@ public class SCTrack{
 
     private String duration;
 
+    private String streamURL;
+
+    public String getStreamURL() {
+        return streamURL;
+    }
+
+    public void setStreamURL(String streamURL) {
+        this.streamURL = streamURL;
+    }
+
     public String getTrackDuraion()
     {
         int time = Integer.parseInt(duration);
