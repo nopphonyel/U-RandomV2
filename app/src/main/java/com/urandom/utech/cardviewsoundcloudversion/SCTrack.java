@@ -52,6 +52,10 @@ public class SCTrack{
 
     private String artWorkURL;
 
+    public String getLargeArtWorkURL() {
+        return artWorkURL.replace("-large.jpg" , "-t500x500.jpg");
+    }
+
     private JSONObject user;
 
     private String genre;

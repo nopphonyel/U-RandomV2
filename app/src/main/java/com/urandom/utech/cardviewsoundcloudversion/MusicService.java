@@ -1,16 +1,20 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.widget.Toast;
+
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +29,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private ArrayList<SCTrack> que;
     private int songPosition = 0;
     private final IBinder musicBind = new MusicBinder();
+    private Notification notification;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -49,6 +54,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void playSong(){
         if(ProgramStaticConstant.getTrackPlayingNo() < ProgramStaticConstant.TRACK.size()) {
             player.reset();
+            ProgramStaticConstant.setIsPlaying(true);
+            MainActivity.updateFloatingActionButton();
             Log.e(TAG_SERVICE, "preparing track");
             SCTrack playSong = que.get(songPosition);
             String url = playSong.getTrackURL() +"/stream" + "?" + Config.CLIENT_ID;
@@ -56,6 +63,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             try {
                 player.setDataSource(url);
                 player.prepareAsync();
+                notification = new NotificationCompat.Builder(this).setContentTitle(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getSongTitle())
+                        .setTicker("U-Random")
+                        .setContentText(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getUserName())
+                        .setSmallIcon(R.drawable.ic_toolbar)
+                        .setOngoing(true).build();
             } catch (IllegalArgumentException e) {
                 Log.e("MusicService", "Error for somthing" + e.toString());
             } catch (IOException e) {
@@ -64,10 +76,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Log.e("MusicService", "Error for somthing" + e.toString());
             } catch (IllegalStateException e) {
                 Log.e("MusicService", "Error for somthing" + e.toString());
+            }   catch (JSONException e) {
+                e.printStackTrace();
             }
         }else {
-            ProgramStaticConstant.setIsPlaying(false);
-            stopSelf();
+            stopMusic();
         }
     }
 
@@ -75,6 +88,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         ProgramStaticConstant.setTrackPlayingNo(songPosition+1);
         setSong(ProgramStaticConstant.getTrackPlayingNo());
         NowPlaying.updateComponent();
+        MainActivity.trackListAdapter.notifyDataSetChanged();
         playSong();
     }
 
@@ -82,6 +96,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         ProgramStaticConstant.setTrackPlayingNo(songPosition-1);
         setSong(ProgramStaticConstant.getTrackPlayingNo());
         NowPlaying.updateComponent();
+        MainActivity.trackListAdapter.notifyDataSetChanged();
         playSong();
     }
 
@@ -104,6 +119,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void stopMusic(){
+        ProgramStaticConstant.setTrackPlayingNo(-1);
+        ProgramStaticConstant.setIsPlaying(false);
+        MainActivity.updateFloatingActionButton();
+        MainActivity.trackListAdapter.notifyDataSetChanged();
         player.stop();
     }
 

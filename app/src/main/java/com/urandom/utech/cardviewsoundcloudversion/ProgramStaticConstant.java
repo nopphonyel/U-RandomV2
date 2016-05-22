@@ -16,7 +16,7 @@ import java.util.List;
 public class ProgramStaticConstant {
     public static ArrayList<SCTrack> TRACK = new ArrayList<SCTrack>();
     public static HashMap<String , SCTrack> FAVORITE_TRACK = new HashMap<String, SCTrack>();
-    private static int TRACK_PLAYING_NO = -1;
+    private static int TRACK_PLAYING_NO = -3;
     private static boolean IS_PLAYING = false;
 
     public static final String TAG_PLAYING = new String("NowPlaying.class");

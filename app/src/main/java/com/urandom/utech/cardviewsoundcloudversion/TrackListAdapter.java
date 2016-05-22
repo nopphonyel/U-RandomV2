@@ -2,6 +2,7 @@ package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,12 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -50,6 +49,12 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     public void onBindViewHolder(TrackHolder holder, int position) {
         SCTrack track = (SCTrack) this.track.get(position);
         holder.trackTitle.setText(track.getSongTitle());
+        if(ProgramStaticConstant.getTrackPlayingNo() == position){
+            holder.trackTitle.setTextColor(Color.parseColor("#f10050"));
+        }
+        else{
+            holder.trackTitle.setTextColor(Color.DKGRAY);
+        }
         try {
             holder.trackOwner.setText(track.getUserName());
         } catch (JSONException e) {
@@ -114,16 +119,13 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
         @Override
         public void onClick(View v) {
-            ProgramStaticConstant.setTrackPlayingNo(trackPosition);
-            Log.d("onClick list Adapter" , "Click at position " + trackPosition);
-            if(ProgramStaticConstant.musicService.getSongPosition() != ProgramStaticConstant.getTrackPlayingNo()) {
-                ProgramStaticConstant.setIsPlaying(true);
+            if(trackPosition != ProgramStaticConstant.getTrackPlayingNo()) {
+                ProgramStaticConstant.setTrackPlayingNo(trackPosition);
                 ProgramStaticConstant.musicService.setSong(trackPosition);
                 ProgramStaticConstant.musicService.playSong();
             }
-            //Toast.makeText(context , "URL:"+ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackURL(), Toast.LENGTH_LONG).show();
+            notifyDataSetChanged();
             context.startActivity(new Intent(context , NowPlaying.class));
-            //context.startActivity(new Intent());
         }
     }
 }

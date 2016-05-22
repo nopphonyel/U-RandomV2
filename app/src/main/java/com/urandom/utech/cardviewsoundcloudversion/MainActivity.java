@@ -32,13 +32,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     protected TrackObject trackFetcher;
 
+    protected static int FAB_PLAYING = 3111 , FAB_SHUFFLE = 3112;
+    protected static int FAB_STATE = 0;
+
     private static final String TAG = "MainActivity";
-    private ArrayList<SCTrack> allTrackList; //List of music
     private static RecyclerView trackList;
     private RecyclerView.LayoutManager trackListLayoutPotrait, trackListLayoutLandscape;
-    private TrackListAdapter trackListAdapter;
+    public static TrackListAdapter trackListAdapter;
 
-    private FloatingActionButton nowPlayingBTN;
+    private static FloatingActionButton nowPlayingBTN;
 
     private static ProgressBar spinner;
     private static TextView loadingText;
@@ -57,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setIcon(R.drawable.ic_toolbar);
 
         nowPlayingBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
-        nowPlayingBTN.setImageResource(android.R.drawable.ic_media_play);
         nowPlayingBTN.setOnClickListener(this);
 
         loadingText = (TextView) findViewById(R.id.loading_text);
@@ -80,8 +81,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             trackList.setLayoutManager(trackListLayoutPotrait);
         else trackList.setLayoutManager(trackListLayoutLandscape);
         trackList.setAdapter(trackListAdapter);
-
+        updateFloatingActionButton();
         fetchRecentTrack();
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        Log.e(ProgramStaticConstant.TAG_PLAYING , "onStart was called");
+        if(playIntent==null){
+            playIntent = new Intent(this, MusicService.class);
+            bindService(playIntent, ProgramStaticConstant.musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        if(playIntent != null){
+            unbindService(ProgramStaticConstant.musicConnection);
+        }
     }
 
     @Override
@@ -95,21 +115,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void fetchRecentTrack() {
-        setVisibilityOfComponent(ON_LOAD);
-        ProgramStaticConstant.TRACK.clear();
-        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART);
-        shuffleTrack();
-    }
-
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.retry_btn) {
             fetchRecentTrack();
         }
         if (v.getId() == R.id.shuffle_btn) {
-            Toast.makeText(this, "Now playing button / shuffle when there is no playing music", Toast.LENGTH_SHORT).show();
-            trackListAdapter.notifyDataSetChanged();
+            if(FAB_STATE == FAB_SHUFFLE){
+                Collections.shuffle(ProgramStaticConstant.TRACK);
+                trackListAdapter.notifyDataSetChanged();
+            }
+            else if(FAB_STATE == FAB_PLAYING){
+                startActivity(new Intent(this , NowPlaying.class));
+            }
         }
     }
 
@@ -134,6 +152,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void fetchRecentTrack() {
+        setVisibilityOfComponent(ON_LOAD);
+        ProgramStaticConstant.TRACK.clear();
+        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART);
+        shuffleTrack();
     }
 
     private void shuffleTrack() {
@@ -164,24 +189,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
-
-    @Override
-    protected void onStart(){
-        super.onStart();
-        Log.e(ProgramStaticConstant.TAG_PLAYING , "onStart was called");
-        if(playIntent==null){
-            playIntent = new Intent(this, MusicService.class);
-            bindService(playIntent, ProgramStaticConstant.musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
+    public static void updateFloatingActionButton(){
+        if(ProgramStaticConstant.isPlaying()){
+            nowPlayingBTN.setImageResource(android.R.drawable.ic_media_play);
+            FAB_STATE = FAB_PLAYING;
         }
-    }
-
-    @Override
-    protected void onDestroy(){
-        super.onDestroy();
-        if(playIntent != null){
-            unbindService(ProgramStaticConstant.musicConnection);
+        else {
+            nowPlayingBTN.setImageResource(android.R.drawable.stat_notify_sync_noanim);
+            FAB_STATE = FAB_SHUFFLE;
         }
     }
 

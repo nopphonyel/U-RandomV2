@@ -8,6 +8,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -17,6 +19,8 @@ public class NowPlaying extends Activity implements View.OnClickListener {
     private static final String TAG_PLAYING = new String("NowPlaying.class");
     private static final String TAG_BIND_SERVICE = new String("ServiceConnection");
     private static final int LOVE = 1 , UNLOVE = 0;
+    private static final int SIZE = 620;
+    private static RelativeLayout.LayoutParams coverLayoutParams;
     protected ImageButton loveBtn;
     protected static TextView trackTitle;
     protected static ImageView cover;
@@ -31,6 +35,7 @@ public class NowPlaying extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_now_playing);
 
         loveBtn = (ImageButton) findViewById(R.id.loveButton);
+
         trackTitle = (TextView) findViewById(R.id.playing_track_title);
         cover = (ImageView) findViewById(R.id.playing_track_cover);
         context = getApplicationContext();
@@ -46,7 +51,8 @@ public class NowPlaying extends Activity implements View.OnClickListener {
 
     public static void updateComponent(){
         trackTitle.setText(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getSongTitle());
-        Picasso.with(context).load(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getArtWorkURL()).placeholder(R.drawable.default_cover).into(cover);
+        Log.d(TAG_PLAYING , ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getArtWorkURL());
+        Picasso.with(context).load(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getLargeArtWorkURL()).placeholder(R.drawable.default_cover).into(cover);
     }
 
     protected void addOnClick(){
