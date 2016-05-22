@@ -25,6 +25,10 @@ public class NowPlaying extends Activity implements View.OnClickListener {
     protected static TextView trackTitle;
     protected static ImageView cover;
     protected static Context context;
+    protected ImageButton playBtn;
+    protected ImageButton pauseBtn;
+    protected ImageButton nextBtn;
+    protected ImageButton backBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,8 @@ public class NowPlaying extends Activity implements View.OnClickListener {
         trackTitle = (TextView) findViewById(R.id.playing_track_title);
         cover = (ImageView) findViewById(R.id.playing_track_cover);
         context = getApplicationContext();
+
+        //playBtn = (ImageButton) findViewById();
 
         if(ProgramStaticConstant.FAVORITE_TRACK.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())){
             loveBtn.setImageResource(R.mipmap.ic_action_love);

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CardViewSoundcloudVersion.iml" filepath="$PROJECT_DIR$/CardViewSoundcloudVersion.iml" />
+      <module fileurl="file://$PROJECT_DIR$/U-RandomV2.iml" filepath="$PROJECT_DIR$/U-RandomV2.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
