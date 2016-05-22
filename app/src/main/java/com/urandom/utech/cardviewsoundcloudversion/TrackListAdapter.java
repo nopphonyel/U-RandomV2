@@ -115,6 +115,12 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         @Override
         public void onClick(View v) {
             ProgramStaticConstant.setTrackPlayingNo(trackPosition);
+            Log.d("onClick list Adapter" , "Click at position " + trackPosition);
+            if(ProgramStaticConstant.musicService.getSongPosition() != ProgramStaticConstant.getTrackPlayingNo()) {
+                ProgramStaticConstant.setIsPlaying(true);
+                ProgramStaticConstant.musicService.setSong(trackPosition);
+                ProgramStaticConstant.musicService.playSong();
+            }
             //Toast.makeText(context , "URL:"+ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackURL(), Toast.LENGTH_LONG).show();
             context.startActivity(new Intent(context , NowPlaying.class));
             //context.startActivity(new Intent());

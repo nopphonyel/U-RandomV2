@@ -1,12 +1,18 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,6 +45,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static Button refreshBtn;
     private static TextView errorText;
+
+    private Intent playIntent;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +127,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 shuffleTrack();
                 fetchRecentTrack();
                 return true;
+            case R.id.stop_service:
+                ProgramStaticConstant.musicService.stopMusic();
+                Log.d(TAG , "Trying to stoping");
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -148,6 +161,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             trackList.setVisibility(View.GONE);
             refreshBtn.setVisibility(View.GONE);
             errorText.setVisibility(View.GONE);
+        }
+    }
+
+
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        Log.e(ProgramStaticConstant.TAG_PLAYING , "onStart was called");
+        if(playIntent==null){
+            playIntent = new Intent(this, MusicService.class);
+            bindService(playIntent, ProgramStaticConstant.musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        if(playIntent != null){
+            unbindService(ProgramStaticConstant.musicConnection);
         }
     }
 

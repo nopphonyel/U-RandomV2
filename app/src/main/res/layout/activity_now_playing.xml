@@ -14,6 +14,9 @@
         android:src="@drawable/default_cover"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:maxWidth="41dp"
+        android:maxHeight="41dp"
+        android:scaleType="fitXY"
         android:layout_centerHorizontal="true"
         android:background="@color/cardview_dark_background"
         android:elevation="4dp"/>

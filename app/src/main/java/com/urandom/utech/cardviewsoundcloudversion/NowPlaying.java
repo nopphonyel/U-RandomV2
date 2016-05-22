@@ -1,28 +1,26 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import com.squareup.picasso.Picasso;
 
 public class NowPlaying extends Activity implements View.OnClickListener {
 
-    private static String TAG_PLAYING = new String("NowPlaying.class");
+    private static final String TAG_PLAYING = new String("NowPlaying.class");
+    private static final String TAG_BIND_SERVICE = new String("ServiceConnection");
     private static final int LOVE = 1 , UNLOVE = 0;
-    ImageButton loveBtn;
-    private MusicService musicService;
-    private Intent playIntent;
-    private boolean musicBound=false;
+    protected ImageButton loveBtn;
+    protected static TextView trackTitle;
+    protected static ImageView cover;
+    protected static Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,47 +31,26 @@ public class NowPlaying extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_now_playing);
 
         loveBtn = (ImageButton) findViewById(R.id.loveButton);
+        trackTitle = (TextView) findViewById(R.id.playing_track_title);
+        cover = (ImageView) findViewById(R.id.playing_track_cover);
+        context = getApplicationContext();
 
         if(ProgramStaticConstant.FAVORITE_TRACK.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())){
             loveBtn.setImageResource(R.mipmap.ic_action_love);
         }else{
             loveBtn.setImageResource(R.mipmap.ic_action_unlove);
         }
+        updateComponent();
         addOnClick();
     }
 
-    private ServiceConnection musicConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
-            musicService = binder.getService();
-            musicService.setList(ProgramStaticConstant.TRACK);
-            musicBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            musicBound = false;
-        }
-    };
-
-    @Override
-    protected void onStart(){
-        super.onStart();
-        if(playIntent==null){
-            playIntent = new Intent(this, MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
-        }
+    public static void updateComponent(){
+        trackTitle.setText(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getSongTitle());
+        Picasso.with(context).load(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getArtWorkURL()).placeholder(R.drawable.default_cover).into(cover);
     }
 
     protected void addOnClick(){
         loveBtn.setOnClickListener(this);
-    }
-
-    public void songPicked(View view){
-        musicService.setSong(Integer.parseInt(view.getTag().toString()));
-        musicService.playSong();
     }
 
     @Override
