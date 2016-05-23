@@ -49,8 +49,9 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     public void onBindViewHolder(TrackHolder holder, int position) {
         SCTrack track = (SCTrack) this.track.get(position);
         holder.trackTitle.setText(track.getSongTitle());
-        if(ProgramStaticConstant.getTrackPlayingNo() == position){
+        if(MusicService.isPlaying() && MusicService.getPlayingTrackID().equalsIgnoreCase(track.getTrackID())){
             holder.trackTitle.setTextColor(Color.parseColor("#f10050"));
+            ProgramStaticConstant.setTrackPlayingNo(position);
         }
         else{
             holder.trackTitle.setTextColor(Color.DKGRAY);
@@ -119,13 +120,14 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
         @Override
         public void onClick(View v) {
-            if(trackPosition != ProgramStaticConstant.getTrackPlayingNo()) {
+            notifyDataSetChanged();
+            context.startActivity(new Intent(context , NowPlaying.class));
+            if(trackPosition != ProgramStaticConstant.getTrackPlayingNo() || !MusicService.isServiceExist()) {
                 ProgramStaticConstant.setTrackPlayingNo(trackPosition);
                 ProgramStaticConstant.musicService.setSong(trackPosition);
                 ProgramStaticConstant.musicService.playSong();
+                //context.startService(new Intent(context , MusicService.class).setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY));
             }
-            notifyDataSetChanged();
-            context.startActivity(new Intent(context , NowPlaying.class));
         }
     }
 }

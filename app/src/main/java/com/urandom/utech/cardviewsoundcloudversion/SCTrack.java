@@ -10,7 +10,7 @@ import org.json.JSONObject;
  * To contain all information in each track
  * Created by nopphon on 4/18/16.
  */
-public class SCTrack{
+public class SCTrack {
 
     public void setSongTitle(String songTitle) {
         this.songTitle = songTitle;
@@ -40,7 +40,7 @@ public class SCTrack{
         this.duration = duration;
     }
 
-    public SCTrack(){
+    public SCTrack() {
 
     }
 
@@ -53,7 +53,7 @@ public class SCTrack{
     private String artWorkURL;
 
     public String getLargeArtWorkURL() {
-        return artWorkURL.replace("-large.jpg" , "-t500x500.jpg");
+        return artWorkURL.replace("-large.jpg", "-t500x500.jpg");
     }
 
     private JSONObject user;
@@ -72,14 +72,18 @@ public class SCTrack{
         this.streamURL = streamURL;
     }
 
-    public String getTrackDuraion()
-    {
+    public String getTrackDuraion() {
         int time = Integer.parseInt(duration);
-        return time/60000 + " min " + (time%60000)/1000 + " sec.";
+        return time / 60000 + " min " + (time % 60000) / 1000 + " sec.";
     }
 
-    public String getTrackGenre()
-    { return genre;}
+    public String getTrackMilisecond() {
+        return duration;
+    }
+
+    public String getTrackGenre() {
+        return genre;
+    }
 
     public String getUserName() throws JSONException {
         return user.get("username").toString();

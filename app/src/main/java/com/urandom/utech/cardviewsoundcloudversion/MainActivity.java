@@ -1,11 +1,8 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,9 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
@@ -39,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static RecyclerView trackList;
     private RecyclerView.LayoutManager trackListLayoutPotrait, trackListLayoutLandscape;
     public static TrackListAdapter trackListAdapter;
+
+    public static MenuItem stopPlayingMusic;
 
     private static FloatingActionButton nowPlayingBTN;
 
@@ -68,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         errorText = (TextView) findViewById(R.id.no_con);
         refreshBtn.setOnClickListener(this);
 
+        stopPlayingMusic = (MenuItem) findViewById(R.id.stop_service);
+
         trackListAdapter = new TrackListAdapter(this, ProgramStaticConstant.TRACK);
 
         trackList = (RecyclerView) findViewById(R.id.list_track);
@@ -91,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(ProgramStaticConstant.TAG_PLAYING , "onStart was called");
         if(playIntent==null){
             playIntent = new Intent(this, MusicService.class);
+            playIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_JUST_START);
             bindService(playIntent, ProgramStaticConstant.musicConnection, Context.BIND_AUTO_CREATE);
             startService(playIntent);
         }
@@ -136,6 +136,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu){
+        if(!MusicService.isPlaying()){
+            menu.findItem(R.id.stop_service).setEnabled(false);
+        }else
+        {
+            menu.findItem(R.id.stop_service).setEnabled(true);
+        }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -190,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public static void updateFloatingActionButton(){
-        if(ProgramStaticConstant.isPlaying()){
+        if(MusicService.isPlaying()){
             nowPlayingBTN.setImageResource(android.R.drawable.ic_media_play);
             FAB_STATE = FAB_PLAYING;
         }

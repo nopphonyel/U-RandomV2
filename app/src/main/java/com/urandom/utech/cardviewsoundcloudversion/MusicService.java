@@ -1,9 +1,9 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -12,24 +12,50 @@ import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 /**
  * Service file
  * Created by tewlyhackyizz on 21-May-16.
  */
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener,MediaPlayer.OnErrorListener,MediaPlayer.OnCompletionListener{
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener , Runnable{
+    private static String playingTrackID;
     private static final String TAG_SERVICE = "MusicService.class";
-    private MediaPlayer player;
+    public static MediaPlayer player;
     private ArrayList<SCTrack> que;
     private int songPosition = 0;
     private final IBinder musicBind = new MusicBinder();
-    private Notification notification;
+    private static boolean IS_PLAYING = false;
+    public static SCTrack playingTrack;
+
+    protected Notification notification;
+
+    public static boolean imNotReadyForPlaying = true;
+
+    private int lastPosition = 0;
+
+    private static boolean IS_SERVICE_EXIST = false;
+
+    public static boolean isPlaying() {
+        return IS_PLAYING;
+    }
+
+    public static void setIsPlaying(boolean isPlaying) {
+        IS_PLAYING = isPlaying;
+    }
+
+    public static boolean isServiceExist() {
+        return IS_SERVICE_EXIST;
+    }
+
+    public static void setIsServiceExist(boolean isServiceExist) {
+        IS_SERVICE_EXIST = isServiceExist;
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -37,37 +63,102 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     @Override
-    public void onCreate(){
-        Log.e(TAG_SERVICE , "Created SERVICE");
+    public void onCreate() {
+        Log.e(TAG_SERVICE, "Created SERVICE");
+        setIsServiceExist(true);
         super.onCreate();
         player = new MediaPlayer();
         songPosition = 0;
         initMusicPlayer();
     }
 
-    public boolean onUnBind(Intent intent){
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_START)) {
+            playSong();
+            Log.i(TAG_SERVICE, "Received Start Foreground Intent ");
+            showNotification();
+        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_PREVIOUS)) {
+            Log.i(TAG_SERVICE, "Clicked Previous");
+            backForword();
+        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PAUSE)) {
+            Log.i(TAG_SERVICE, "Clicked Pause");
+            if(isPlaying()) {
+                pauseMusic();
+            }else
+            {
+                unpauseMusic();
+            }
+        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT)) {
+            Log.i(TAG_SERVICE, "Clicked Next");
+            fastForword();
+        }
+        return START_NOT_STICKY;
+    }
+
+    public void showNotification() {
+        Intent notificationIntent = new Intent(this, NowPlaying.class);
+        notificationIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_NOW_PLAYING);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Intent previousIntent = new Intent(this, MusicService.class);
+        previousIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_PREVIOUS);
+        PendingIntent ppreviousIntent = PendingIntent.getService(this, 0, previousIntent, 0);
+
+        Intent pauseIntent = new Intent(this, MusicService.class);
+        pauseIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PAUSE);
+        PendingIntent ppauseIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
+
+        Intent nextIntent = new Intent(this, MusicService.class);
+        nextIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT);
+        PendingIntent pnextIntent = PendingIntent.getService(this, 0, nextIntent, 0);
+        try {
+            notification = new NotificationCompat.Builder(this)
+                    .setContentTitle(playingTrack.getSongTitle())
+                    .setContentText(playingTrack.getUserName())
+                    .setSmallIcon(R.drawable.ic_toolbar)
+                    .setContentIntent(pendingIntent)
+                    .setOngoing(true)
+                    .addAction(android.R.drawable.ic_media_previous, "Previous", ppreviousIntent)
+                    .addAction(android.R.drawable.ic_media_pause, "Play/Pause", ppauseIntent)
+                    .addAction(android.R.drawable.ic_media_next, "Next", pnextIntent).build();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        startForeground(ProgramStaticConstant.ForegroundServiceAction.FOREGROUND_SERVICE, notification);
+
+    }
+
+    public boolean onUnBind(Intent intent) {
         player.stop();
         player.release();
+        setIsServiceExist(false);
         return false;
     }
 
-    public void playSong(){
-        if(ProgramStaticConstant.getTrackPlayingNo() < ProgramStaticConstant.TRACK.size()) {
+    public static String getPlayingTrackID() {
+        return playingTrackID;
+    }
+
+    public void playSong() {
+        if (songPosition < ProgramStaticConstant.TRACK.size() && songPosition >= 0) {
             player.reset();
-            ProgramStaticConstant.setIsPlaying(true);
+            imNotReadyForPlaying = true;
             MainActivity.updateFloatingActionButton();
             Log.e(TAG_SERVICE, "preparing track");
             SCTrack playSong = que.get(songPosition);
-            String url = playSong.getTrackURL() +"/stream" + "?" + Config.CLIENT_ID;
-            Log.d(TAG_SERVICE , url);
+            playingTrack = playSong;
+            playingTrackID = playSong.getTrackID();
+            showNotification();
+            String url = playSong.getTrackURL() + "/stream" + "?" + Config.CLIENT_ID;
+            Log.d(TAG_SERVICE, url);
             try {
+                if (NowPlaying.ableToUpdateComponent) {
+                    NowPlaying.updateComponent();
+                }
                 player.setDataSource(url);
                 player.prepareAsync();
-                notification = new NotificationCompat.Builder(this).setContentTitle(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getSongTitle())
-                        .setTicker("U-Random")
-                        .setContentText(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getUserName())
-                        .setSmallIcon(R.drawable.ic_toolbar)
-                        .setOngoing(true).build();
             } catch (IllegalArgumentException e) {
                 Log.e("MusicService", "Error for somthing" + e.toString());
             } catch (IOException e) {
@@ -76,61 +167,83 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Log.e("MusicService", "Error for somthing" + e.toString());
             } catch (IllegalStateException e) {
                 Log.e("MusicService", "Error for somthing" + e.toString());
-            }   catch (JSONException e) {
-                e.printStackTrace();
             }
-        }else {
-            stopMusic();
+        } else {
+            if (songPosition > ProgramStaticConstant.TRACK.size()) {
+                stopMusic();
+            } else if (songPosition < 0) {
+                fastForword();
+            }
         }
     }
 
-    public void fastForword(){
-        ProgramStaticConstant.setTrackPlayingNo(songPosition+1);
-        setSong(ProgramStaticConstant.getTrackPlayingNo());
-        NowPlaying.updateComponent();
+    public void fastForword() {
+        ProgramStaticConstant.setTrackPlayingNo(songPosition + 1);
+        setSong(ProgramStaticConstant.getTrackPlayingNo()); //Set songPosition variable
+
         MainActivity.trackListAdapter.notifyDataSetChanged();
         playSong();
     }
 
-    public void backForword(){
-        ProgramStaticConstant.setTrackPlayingNo(songPosition-1);
-        setSong(ProgramStaticConstant.getTrackPlayingNo());
-        NowPlaying.updateComponent();
-        MainActivity.trackListAdapter.notifyDataSetChanged();
-        playSong();
+    public void backForword() {
+        if (player.getCurrentPosition() <= 3000) {
+            ProgramStaticConstant.setTrackPlayingNo(songPosition - 1);
+            setSong(ProgramStaticConstant.getTrackPlayingNo()); //Set songPosition variable
+
+            MainActivity.trackListAdapter.notifyDataSetChanged();
+            playSong();
+        } else {
+            gotoMusic(0);
+        }
     }
+
 
     @Override
-    public void onCompletion(MediaPlayer mp){
+    public void onCompletion(MediaPlayer mp) {
         fastForword();
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        fastForword();
-        Log.e(TAG_SERVICE , "Error playing Track skip to position " + songPosition);
+        Log.e(TAG_SERVICE, "Error playing Track skip to position " + songPosition);
         return false;
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        Log.d(TAG_SERVICE , "Playing track");
+        Log.d(TAG_SERVICE, "Playing track");
+        imNotReadyForPlaying = false;
+        setIsPlaying(true);
+        NowPlaying.updateComponent();
         mp.start();
     }
 
-    public void stopMusic(){
+    public static void gotoMusic(int newPosition) {
+        player.seekTo(newPosition);
+    }
+
+    public void stopMusic() {
         ProgramStaticConstant.setTrackPlayingNo(-1);
-        ProgramStaticConstant.setIsPlaying(false);
+        setIsPlaying(false);
         MainActivity.updateFloatingActionButton();
         MainActivity.trackListAdapter.notifyDataSetChanged();
         player.stop();
     }
 
-    public void pauseMusic(){
+    public void pauseMusic() {
+        Log.e(TAG_SERVICE, "Pause");
+        setIsPlaying(false);
+        lastPosition = player.getCurrentPosition();
         player.pause();
     }
 
-    public void initMusicPlayer(){
+    public void unpauseMusic() {
+        Log.e(TAG_SERVICE, "Unpause");
+        setIsPlaying(true);
+        gotoMusic(lastPosition);
+    }
+
+    public void initMusicPlayer() {
         player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         player.setOnPreparedListener(this);
@@ -138,23 +251,33 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         player.setOnErrorListener(this);
     }
 
-    public void setList(ArrayList<SCTrack> track){
-        que=track;
+    public void setList(ArrayList<SCTrack> track) {
+        que = track;
     }
 
-    public class MusicBinder extends Binder{
-        MusicService getService(){
+    @Override
+    public void run() {
+        while(isPlaying()){
+            try{
+                Thread.sleep(1000);
+                NowPlaying.seekBar.setProgress(NowPlaying.seekBar.getProgress()+1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public class MusicBinder extends Binder {
+        MusicService getService() {
             return MusicService.this;
         }
     }
 
-    public void setSong(int songIndex){
+    public void setSong(int songIndex) {
         songPosition = songIndex;
     }
 
-    public int getSongPosition(){
+    public int getSongPosition() {
         return songPosition;
     }
-
-
 }

@@ -177,7 +177,7 @@ public class TrackObject {
         return (long)(Math.random()*1000);
     }
     public long getRandomChartOffset() {
-        long randNum = (long)(Math.random()*50);
+        long randNum = (long)(Math.random()*100);
         Log.e(TAG_INTERNET , "RAND_NUM == "+randNum);
         return randNum;
     }

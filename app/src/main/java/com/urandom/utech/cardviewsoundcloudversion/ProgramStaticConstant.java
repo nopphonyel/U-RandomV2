@@ -17,7 +17,6 @@ public class ProgramStaticConstant {
     public static ArrayList<SCTrack> TRACK = new ArrayList<SCTrack>();
     public static HashMap<String , SCTrack> FAVORITE_TRACK = new HashMap<String, SCTrack>();
     private static int TRACK_PLAYING_NO = -3;
-    private static boolean IS_PLAYING = false;
 
     public static final String TAG_PLAYING = new String("NowPlaying.class");
     public static final String TAG_BIND_SERVICE = new String("ServiceConnection");
@@ -26,14 +25,6 @@ public class ProgramStaticConstant {
 
     public static int getTrackPlayingNo() {
         return TRACK_PLAYING_NO;
-    }
-
-    public static boolean isPlaying() {
-        return IS_PLAYING;
-    }
-
-    public static void setIsPlaying(boolean isPlaying) {
-        IS_PLAYING = isPlaying;
     }
 
     public static void setTrackPlayingNo(int trackPlayingNo) {
@@ -57,4 +48,15 @@ public class ProgramStaticConstant {
             Log.d(TAG_BIND_SERVICE,"Service now disconnected");
         }
     };
+
+    public static class ForegroundServiceAction{
+        public static String ACTION_PLAY_PREVIOUS = "playPrevious";
+        public static String ACTION_PLAY_NEXT = "playNext";
+        public static String ACTION_NOW_PLAYING = "nowPlaying_requested";
+        public static String ACTION_PLAY = "playTrack";
+        public static String ACTION_PAUSE = "pauseTrack";
+        public static String ACTION_START = "startService_requested";
+        public static int FOREGROUND_SERVICE = 101;
+        public static String ACTION_JUST_START = "justStart_youKnow?";
+    }
 }
