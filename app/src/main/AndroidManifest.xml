@@ -4,7 +4,7 @@
     package="com.urandom.utech.cardviewsoundcloudversion">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -16,10 +16,6 @@
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize">
-            <meta-data
-                android:name="android.app.searchable"
-                android:resource="@xml/searchable" />
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -27,14 +23,19 @@
         </activity>
 
 
-        <activity android:name=".NowPlaying"
-            android:screenOrientation="portrait"
+        <activity
+            android:name=".NowPlaying"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:parentActivityName=".MainActivity">
-        </activity>
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"/>
 
-        <service android:name=".MusicService"
-            android:icon="@drawable/ic_toolbar"/>
+        <activity
+            android:name=".FavoriteActivity"
+            android:configChanges="orientation|screenSize"/>
+
+        <service
+            android:name=".MusicService"
+            android:icon="@drawable/ic_toolbar" />
 
     </application>
 

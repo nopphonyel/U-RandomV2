@@ -15,7 +15,8 @@ import java.util.List;
  */
 public class ProgramStaticConstant {
     public static ArrayList<SCTrack> TRACK = new ArrayList<SCTrack>();
-    public static HashMap<String , SCTrack> FAVORITE_TRACK = new HashMap<String, SCTrack>();
+    public static HashMap<String , SCTrack> FAVORITE_TRACK_HASH_MAP = new HashMap<String, SCTrack>();
+    public static ArrayList<SCTrack> FAVORITE_TRACK = new ArrayList<SCTrack>();
     private static int TRACK_PLAYING_NO = -3;
 
     public static final String TAG_PLAYING = new String("NowPlaying.class");
@@ -39,6 +40,22 @@ public class ProgramStaticConstant {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
             musicService = binder.getService();
             musicService.setList(ProgramStaticConstant.TRACK);
+            Log.d(TAG_BIND_SERVICE,"Service now connected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            musicBound = false;
+            Log.d(TAG_BIND_SERVICE,"Service now disconnected");
+        }
+    };
+
+    public static ServiceConnection loveMusicConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
+            musicService = binder.getService();
+            musicService.setList(ProgramStaticConstant.FAVORITE_TRACK);
             Log.d(TAG_BIND_SERVICE,"Service now connected");
         }
 

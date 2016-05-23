@@ -102,7 +102,7 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
         Picasso.with(context).load(MusicService.playingTrack.getLargeArtWorkURL()).placeholder(R.drawable.default_cover).into(cover);
 
         //Check track is in a favorite collection
-        if (ProgramStaticConstant.FAVORITE_TRACK.containsKey(MusicService.playingTrack.getTrackID())) {
+        if (ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.containsKey(MusicService.playingTrack.getTrackID())) {
             loveBtn.setImageResource(R.mipmap.ic_action_love);
         } else {
             loveBtn.setImageResource(R.mipmap.ic_action_unlove);
@@ -138,7 +138,7 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
     public void onClick(View v) {
         if (v == loveBtn) {
             //Click to add this track to favorite
-            if (ProgramStaticConstant.FAVORITE_TRACK.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())) {
+            if (ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())) {
                 loveBtn.setImageResource(R.mipmap.ic_action_unlove);
                 Log.e(TAG_PLAYING, ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID());
                 ProgramStaticConstant.FAVORITE_TRACK.remove(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID());
@@ -146,7 +146,7 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
             //Click to remove this track from favorite
             else {
                 loveBtn.setImageResource(R.mipmap.ic_action_love);
-                ProgramStaticConstant.FAVORITE_TRACK.put(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID(), ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()));
+                ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.put(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID(), ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()));
             }
         }
         if (v == playBtn) {
@@ -191,6 +191,7 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         MusicService.gotoMusic(seekBar.getProgress());
+        MusicService.lastPosition = seekBar.getProgress();
         updateComponent();
     }
 

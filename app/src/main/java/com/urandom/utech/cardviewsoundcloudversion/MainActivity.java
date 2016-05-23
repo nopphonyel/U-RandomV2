@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void fetchRecentTrack() {
         setVisibilityOfComponent(ON_LOAD);
         ProgramStaticConstant.TRACK.clear();
-        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART);
+        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART , ParamTrack.GenreList.ELECTRONIC);
         shuffleTrack();
     }
 

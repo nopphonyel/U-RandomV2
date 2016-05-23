@@ -27,7 +27,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:text="TRACK_TITLE"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+        android:textSize="18dp"
         android:textColor="#454545" />
 
     <ImageView

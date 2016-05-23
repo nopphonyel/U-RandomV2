@@ -23,8 +23,8 @@ import java.util.logging.LogRecord;
  * Service file
  * Created by tewlyhackyizz on 21-May-16.
  */
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener , Runnable{
-    private static String playingTrackID;
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener{
+    private static String playingTrackID = new String();
     private static final String TAG_SERVICE = "MusicService.class";
     public static MediaPlayer player;
     private ArrayList<SCTrack> que;
@@ -37,7 +37,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public static boolean imNotReadyForPlaying = true;
 
-    private int lastPosition = 0;
+    public static int lastPosition = 0;
 
     private static boolean IS_SERVICE_EXIST = false;
 
@@ -74,19 +74,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_START)) {
-            playSong();
-            Log.i(TAG_SERVICE, "Received Start Foreground Intent ");
-            showNotification();
-        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_PREVIOUS)) {
+        if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_PREVIOUS)) {
             Log.i(TAG_SERVICE, "Clicked Previous");
             backForword();
         } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PAUSE)) {
             Log.i(TAG_SERVICE, "Clicked Pause");
-            if(isPlaying()) {
+            if (isPlaying()) {
                 pauseMusic();
-            }else
-            {
+            } else {
                 unpauseMusic();
             }
         } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT)) {
@@ -145,18 +140,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (songPosition < ProgramStaticConstant.TRACK.size() && songPosition >= 0) {
             player.reset();
             imNotReadyForPlaying = true;
-            MainActivity.updateFloatingActionButton();
+            setIsPlaying(true);
             Log.e(TAG_SERVICE, "preparing track");
             SCTrack playSong = que.get(songPosition);
             playingTrack = playSong;
             playingTrackID = playSong.getTrackID();
+
+            MainActivity.updateFloatingActionButton();
+            if (NowPlaying.ableToUpdateComponent) {
+                NowPlaying.updateComponent();
+            }
+
             showNotification();
             String url = playSong.getTrackURL() + "/stream" + "?" + Config.CLIENT_ID;
             Log.d(TAG_SERVICE, url);
             try {
-                if (NowPlaying.ableToUpdateComponent) {
-                    NowPlaying.updateComponent();
-                }
                 player.setDataSource(url);
                 player.prepareAsync();
             } catch (IllegalArgumentException e) {
@@ -213,7 +211,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mp) {
         Log.d(TAG_SERVICE, "Playing track");
         imNotReadyForPlaying = false;
-        setIsPlaying(true);
         NowPlaying.updateComponent();
         mp.start();
     }
@@ -234,6 +231,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Log.e(TAG_SERVICE, "Pause");
         setIsPlaying(false);
         lastPosition = player.getCurrentPosition();
+        NowPlaying.updateComponent();
         player.pause();
     }
 
@@ -241,6 +239,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Log.e(TAG_SERVICE, "Unpause");
         setIsPlaying(true);
         gotoMusic(lastPosition);
+        NowPlaying.updateComponent();
+        player.start();
     }
 
     public void initMusicPlayer() {
@@ -255,17 +255,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         que = track;
     }
 
-    @Override
-    public void run() {
-        while(isPlaying()){
-            try{
-                Thread.sleep(1000);
-                NowPlaying.seekBar.setProgress(NowPlaying.seekBar.getProgress()+1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     public class MusicBinder extends Binder {
         MusicService getService() {
