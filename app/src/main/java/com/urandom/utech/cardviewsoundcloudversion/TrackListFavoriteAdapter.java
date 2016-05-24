@@ -22,14 +22,13 @@ import java.util.List;
  * This is an adapter
  * Created by nopphon on 4/18/16.
  */
-public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.TrackHolder> {
+public class TrackListFavoriteAdapter extends RecyclerView.Adapter<TrackListFavoriteAdapter.TrackHolder> {
 
-    private static String TAG_ADAPTER = "trackListAdapter";
     private List<SCTrack> track;
     private Context context;
 
 
-    TrackListAdapter(Context mcontext, List<SCTrack> newTrack) {
+    TrackListFavoriteAdapter(Context mcontext, List<SCTrack> newTrack) {
         context = mcontext;
         track = newTrack;
     }
@@ -52,8 +51,6 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         holder.trackTitle.setText(track.getSongTitle());
         if(MusicService.isPlaying() && MusicService.getPlayingTrackID().equalsIgnoreCase(track.getTrackID())){
             holder.trackTitle.setTextColor(Color.parseColor("#f10050"));
-            ProgramStaticConstant.setTrackPlayingNo(position);
-            Log.d(TAG_ADAPTER , "set position to "+position);
         }
         else{
             holder.trackTitle.setTextColor(Color.DKGRAY);
@@ -124,15 +121,11 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         public void onClick(View v) {
             notifyDataSetChanged();
             context.startActivity(new Intent(context , NowPlaying.class));
-            if(!MusicService.isServiceExist()){
-                context.bindService(new Intent(context , MusicService.class).setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_JUST_START), ProgramStaticConstant.musicConnection, Context.BIND_AUTO_CREATE);
-                context.startService(new Intent(context , MusicService.class).setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_JUST_START));
-            }
             if(trackPosition != ProgramStaticConstant.getTrackPlayingNo() || !MusicService.isServiceExist()) {
                 ProgramStaticConstant.setTrackPlayingNo(trackPosition);
                 ProgramStaticConstant.musicService.setSong(trackPosition);
-                if(MusicService.que != ProgramStaticConstant.TRACK)
-                    MusicService.setList(ProgramStaticConstant.TRACK);
+                if(MusicService.que != ProgramStaticConstant.FAVORITE_TRACK)
+                    MusicService.setList(ProgramStaticConstant.FAVORITE_TRACK);
                 ProgramStaticConstant.musicService.playSong();
                 //context.startService(new Intent(context , MusicService.class).setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY));
             }

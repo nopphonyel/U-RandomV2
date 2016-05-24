@@ -10,6 +10,8 @@ public class ParamTrack {
     public static final String MODE_FILTER_TRACK = "/tracks";
     public static final String PARAM_OFFSET = "&offset=";
     public static final String PARAM_LIMIT = "&limit=";
+    public static final String KIND_TOP50 = "?kind=top";
+    public static final String KIND_NEW_AND_HOT = "?kind=trending";
     public static final String GENRE = "&genre=";
 
         public class  GenreList{

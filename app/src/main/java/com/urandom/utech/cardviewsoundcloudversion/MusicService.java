@@ -27,7 +27,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private static String playingTrackID = new String();
     private static final String TAG_SERVICE = "MusicService.class";
     public static MediaPlayer player;
-    private ArrayList<SCTrack> que;
+    public static ArrayList<SCTrack> que;
     private int songPosition = 0;
     private final IBinder musicBind = new MusicBinder();
     private static boolean IS_PLAYING = false;
@@ -87,6 +87,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT)) {
             Log.i(TAG_SERVICE, "Clicked Next");
             fastForword();
+        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.STOP_SERVICE)){
+            stopSelf();
         }
         return START_NOT_STICKY;
     }
@@ -108,6 +110,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Intent nextIntent = new Intent(this, MusicService.class);
         nextIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT);
         PendingIntent pnextIntent = PendingIntent.getService(this, 0, nextIntent, 0);
+
+        Intent stopIntent = new Intent(this , MusicService.class);
+        stopIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.STOP_SERVICE);
+        PendingIntent pstopIntent = PendingIntent.getService(this, 0 , stopIntent , 0);
         try {
             notification = new NotificationCompat.Builder(this)
                     .setContentTitle(playingTrack.getSongTitle())
@@ -117,7 +123,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     .setOngoing(true)
                     .addAction(android.R.drawable.ic_media_previous, "Previous", ppreviousIntent)
                     .addAction(android.R.drawable.ic_media_pause, "Play/Pause", ppauseIntent)
-                    .addAction(android.R.drawable.ic_media_next, "Next", pnextIntent).build();
+                    .addAction(android.R.drawable.ic_media_next, "Next", pnextIntent)
+                    .build();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -251,7 +258,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         player.setOnErrorListener(this);
     }
 
-    public void setList(ArrayList<SCTrack> track) {
+    public void stopRunning(){
+        IS_SERVICE_EXIST = false;
+        stopSelf();
+    }
+
+    public static void setList(ArrayList<SCTrack> track) {
         que = track;
     }
 

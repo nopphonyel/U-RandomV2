@@ -75,5 +75,11 @@ public class ProgramStaticConstant {
         public static String ACTION_START = "startService_requested";
         public static int FOREGROUND_SERVICE = 101;
         public static String ACTION_JUST_START = "justStart_youKnow?";
+        public static String STOP_SERVICE = "STOP_SERVICE!!";
+    }
+
+    public static void resetValue(){
+        TRACK_PLAYING_NO = -1;
+        MusicService.setIsPlaying(false);
     }
 }

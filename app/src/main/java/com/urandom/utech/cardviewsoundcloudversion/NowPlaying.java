@@ -19,7 +19,15 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
-public class NowPlaying extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.HashMap;
+
+public class NowPlaying extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener , Serializable {
 
     private static final String TAG_PLAYING = new String("NowPlaying.class");
     private static final String TAG_BIND_SERVICE = new String("ServiceConnection");
@@ -42,6 +50,8 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
     protected static ImageView playBtn;
     protected ImageView nextBtn;
     protected ImageView backBtn;
+
+    protected TrackObject trackManagement;
     static long timeOffset = 0;
     static int currentOffset = 0;
 
@@ -50,6 +60,7 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
     protected Thread seekBarUpdater;
 
     private Handler updateSeekBarHandler = new Handler();
+    protected String extraReport;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +71,8 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
         } else {
             setContentView(R.layout.activity_now_playing_for_kitkat);
         }
+
+        trackManagement = new TrackObject();
 
         loveBtn = (ImageView) findViewById(R.id.loveButton);
         playBtn = (ImageView) findViewById(R.id.playBtn);
@@ -138,16 +151,19 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
     public void onClick(View v) {
         if (v == loveBtn) {
             //Click to add this track to favorite
-            if (ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.containsKey(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID())) {
+            if (ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.containsKey(MusicService.playingTrack.getTrackID())) {
                 loveBtn.setImageResource(R.mipmap.ic_action_unlove);
-                Log.e(TAG_PLAYING, ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID());
-                ProgramStaticConstant.FAVORITE_TRACK.remove(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID());
+                ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.remove(MusicService.playingTrack.getTrackID());
             }
             //Click to remove this track from favorite
             else {
                 loveBtn.setImageResource(R.mipmap.ic_action_love);
-                ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.put(ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()).getTrackID(), ProgramStaticConstant.TRACK.get(ProgramStaticConstant.getTrackPlayingNo()));
+                ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.put(MusicService.playingTrack.getTrackID(), MusicService.playingTrack);
             }
+            trackManagement.saveFavoriteTrack();
+            trackManagement.getFavoriteTrack();
+            if(FavoriteActivity.FAVORITE_ACTIVITY_WAS_CREATED)
+                FavoriteActivity.favoriteTrackListAdapter.notifyDataSetChanged();
         }
         if (v == playBtn) {
             if (MusicService.isPlaying()) {

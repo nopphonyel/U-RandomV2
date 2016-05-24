@@ -1,8 +1,11 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -54,7 +57,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main_with_drawer);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_toolbar);
-
+        getSupportActionBar().setTitle(" U-Random");
+        requestPermission();
         nowPlayingBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
         nowPlayingBTN.setOnClickListener(this);
 
@@ -99,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        if(playIntent != null){
+        if(MusicService.isServiceExist()){
             unbindService(ProgramStaticConstant.musicConnection);
         }
     }
@@ -140,11 +144,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu){
-        if(!MusicService.isPlaying()){
+        if(!MusicService.isPlaying() || MusicService.imNotReadyForPlaying){
             menu.findItem(R.id.stop_service).setEnabled(false);
         }else
         {
             menu.findItem(R.id.stop_service).setEnabled(true);
+        }
+
+        if(!MusicService.isServiceExist()){
+            menu.findItem(R.id.real_stop_service).setEnabled(false);
+        }else{
+            menu.findItem(R.id.real_stop_service).setEnabled(true);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -160,6 +170,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ProgramStaticConstant.musicService.stopMusic();
                 Log.d(TAG , "Trying to stoping");
                 return true;
+            case R.id.menu_favorite:
+                startActivity(new Intent(this , FavoriteActivity.class));
+                return true;
+            case R.id.real_stop_service:
+                ProgramStaticConstant.musicService.stopRunning();
+                unbindService(ProgramStaticConstant.musicConnection);
+                ProgramStaticConstant.resetValue();
+                trackListAdapter.notifyDataSetChanged();
+                updateFloatingActionButton();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -168,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void fetchRecentTrack() {
         setVisibilityOfComponent(ON_LOAD);
         ProgramStaticConstant.TRACK.clear();
-        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART , ParamTrack.GenreList.ELECTRONIC);
+        trackFetcher.getTrack(TrackObject.GET_BY_POPULAR_CHART , ParamTrack.GenreList.ELECTRONIC , ParamTrack.KIND_NEW_AND_HOT);
         shuffleTrack();
     }
 
@@ -208,6 +227,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else {
             nowPlayingBTN.setImageResource(android.R.drawable.stat_notify_sync_noanim);
             FAB_STATE = FAB_SHUFFLE;
+        }
+    }
+
+    protected void requestPermission(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        {
+            if(!Settings.System.canWrite(this))
+            {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE , Manifest.permission.READ_EXTERNAL_STORAGE}, 2909);
+            }
         }
     }
 
