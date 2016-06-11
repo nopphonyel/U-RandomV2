@@ -44,6 +44,8 @@ public class SCTrack {
 
     }
 
+    private JSONObject mainObject;
+
     private String songTitle;
 
     private String trackID;
@@ -52,10 +54,6 @@ public class SCTrack {
 
     private String artWorkURL;
 
-    public String getLargeArtWorkURL() {
-        return artWorkURL.replace("-large.jpg", "-t500x500.jpg");
-    }
-
     private JSONObject user;
 
     private String genre;
@@ -63,6 +61,10 @@ public class SCTrack {
     private String duration;
 
     private String streamURL;
+
+    public String getLargeArtWorkURL() {
+        return artWorkURL.replace("-large.jpg", "-t500x500.jpg");
+    }
 
     public String getStreamURL() {
         return streamURL;
@@ -105,4 +107,18 @@ public class SCTrack {
         return artWorkURL;
     }
 
+    public JSONObject getUser(){return user;}
+
+    public JSONObject getJSONMainObject(){
+        return mainObject;
+    }
+
+    public void setMainObject(JSONObject mainObject) {
+        this.mainObject = mainObject;
+    }
+
+    @Override
+    public String toString(){
+        return songTitle + "\n" + genre + "\n" + trackID + "\n" + trackURL + "\n" + artWorkURL + "\n" + duration + "\n";
+    }
 }

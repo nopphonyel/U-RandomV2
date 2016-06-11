@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static final int ON_LOAD = 1, ERROR_LOAD = 2, LOAD_SUCCESS = 3;
 
+    public static boolean MAIN_ACTIVITY_WAS_CREATED = false;
+
     protected TrackObject trackFetcher;
 
     protected static int FAB_PLAYING = 3111 , FAB_SHUFFLE = 3112;
@@ -58,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_toolbar);
         getSupportActionBar().setTitle(" U-Random");
-        requestPermission();
         nowPlayingBTN = (FloatingActionButton) findViewById(R.id.shuffle_btn);
         nowPlayingBTN.setOnClickListener(this);
 
@@ -84,8 +85,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             trackList.setLayoutManager(trackListLayoutPotrait);
         else trackList.setLayoutManager(trackListLayoutLandscape);
         trackList.setAdapter(trackListAdapter);
+        MAIN_ACTIVITY_WAS_CREATED = true;
         updateFloatingActionButton();
         fetchRecentTrack();
+        requestPermission();
     }
 
     @Override
@@ -103,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        MAIN_ACTIVITY_WAS_CREATED = false;
         if(MusicService.isServiceExist()){
             unbindService(ProgramStaticConstant.musicConnection);
         }

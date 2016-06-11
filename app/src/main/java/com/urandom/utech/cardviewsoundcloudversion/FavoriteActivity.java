@@ -1,6 +1,5 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -9,16 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Collections;
 import java.util.Random;
@@ -69,11 +62,15 @@ public class FavoriteActivity extends AppCompatActivity implements View.OnClickL
         favoriteTrackListAdapter = new TrackListFavoriteAdapter(this, ProgramStaticConstant.FAVORITE_TRACK);
         FAVORITE_ACTIVITY_WAS_CREATED = true;
 
+        //Create Tracklist object
         trackList = (RecyclerView) findViewById(R.id.list_track);
         trackListLayoutPotrait = new LinearLayoutManager(this);
         trackListLayoutLandscape = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
 
+        //Create trackManagement odject for fetching track or import track list to recyclerView
         trackManagement = new TrackObject();
+
+        getFavoriteTrack();
 
         //Check Orientation
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
@@ -83,9 +80,12 @@ public class FavoriteActivity extends AppCompatActivity implements View.OnClickL
         trackList.setAdapter(favoriteTrackListAdapter);
 
         updateFloatingActionButton();
-        getFavoriteTrack();
     }
 
+    /**
+     * Set layout when on portrait orientation or landscape orientation
+     * @param newConfig
+     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -109,53 +109,32 @@ public class FavoriteActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.options_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        if (!MusicService.isPlaying()) {
-            menu.findItem(R.id.stop_service).setEnabled(false);
-        } else {
-            menu.findItem(R.id.stop_service).setEnabled(true);
-        }
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.refresh_track:
-                shuffleTrack();
-                getFavoriteTrack();
-                return true;
-            case R.id.stop_service:
-                ProgramStaticConstant.musicService.stopMusic();
-                Log.d(TAG, "Trying to stoping");
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
+    /**
+     * Import favorite track into ProgramStaticConstant.FAVORITE_TRACK
+     */
     public void getFavoriteTrack() {
         ProgramStaticConstant.FAVORITE_TRACK.clear();
         trackManagement.getFavoriteTrack();
         shuffleTrack();
     }
 
+    /**
+     * Shuffle track list
+     */
     private void shuffleTrack() {
         long seed = System.nanoTime();
-        Collections.shuffle(ProgramStaticConstant.TRACK, new Random(seed));
+        Collections.shuffle(ProgramStaticConstant.FAVORITE_TRACK, new Random(seed));
         favoriteTrackListAdapter.notifyDataSetChanged();
     }
 
-    public static void setVisibilityOfComponent(int id , String extraReport){
-        if(FAVORITE_ACTIVITY_WAS_CREATED) {
+    /**
+     * Set visibilyty of component while loading or when error loading
+     *
+     * @param id
+     * @param extraReport
+     */
+    public static void setVisibilityOfComponent(int id, String extraReport) {
+        if (FAVORITE_ACTIVITY_WAS_CREATED) {
             if (id == LOAD_SUCCESS) {
                 spinner.setVisibility(View.GONE);
                 loadingText.setVisibility(View.GONE);
@@ -171,6 +150,9 @@ public class FavoriteActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    /**
+     * Update floating action button icon and FAB_STATE to tell what FAB gonna do when click it
+     */
     public static void updateFloatingActionButton() {
         if (MusicService.isPlaying()) {
             nowPlayingBTN.setImageResource(android.R.drawable.ic_media_play);

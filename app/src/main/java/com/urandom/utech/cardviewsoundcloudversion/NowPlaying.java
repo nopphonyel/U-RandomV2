@@ -161,7 +161,6 @@ public class NowPlaying extends Activity implements View.OnClickListener, SeekBa
                 ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.put(MusicService.playingTrack.getTrackID(), MusicService.playingTrack);
             }
             trackManagement.saveFavoriteTrack();
-            trackManagement.getFavoriteTrack();
             if(FavoriteActivity.FAVORITE_ACTIVITY_WAS_CREATED)
                 FavoriteActivity.favoriteTrackListAdapter.notifyDataSetChanged();
         }

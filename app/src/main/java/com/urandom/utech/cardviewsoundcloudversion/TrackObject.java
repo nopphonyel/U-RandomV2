@@ -14,16 +14,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,7 +34,7 @@ import java.util.HashMap;
  * This class is a track list management for track list
  * Created by nopphon on 4/25/16.
  */
-public class TrackObject implements Serializable{
+public class TrackObject implements Serializable {
 
     public static final String TAG_INTERNET = "internet", TAG_JSON = "json", TAG_FILE_IMPORT = "importObj", TAG_FILE_EXPORT = "exportObj";
 
@@ -48,8 +51,7 @@ public class TrackObject implements Serializable{
 
     protected static final File ROOT = android.os.Environment.getExternalStorageDirectory();
     protected static final File DIRECTORY_PATH = new File(ROOT.getAbsolutePath() + "/urandom-data");
-
-    protected HashMap<String , SCTrack> tempHash;
+    protected static final String FILE_NAME = "fav_uran.URobj";
 
     private double apiVersion = 2;
 
@@ -87,15 +89,16 @@ public class TrackObject implements Serializable{
 
     public void getFavoriteTrack() {
         //FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.ON_LOAD, null);
-        if(optimizeHashMapToFavoriteArrayList() == LOAD_SUCCESFULLY){
-            FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.LOAD_SUCCESS , null);
+        new ImportFavoriteTrack().execute();
+        if (optimizeHashMapToFavoriteArrayList() == LOAD_SUCCESFULLY) {
+            FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.LOAD_SUCCESS, null);
         }
         //new importFavoriteTrack().execute();
     }
 
-    public void saveFavoriteTrack(){
-        Log.d(TAG_FILE_EXPORT , "Saving");
-        new writeFavorite().execute();
+    public void saveFavoriteTrack() {
+        Log.d(TAG_FILE_EXPORT, "Saving");
+        new WriteFavorite().execute();
     }
 
     private class fetchingTrackInBackground extends AsyncTask<String, Integer, Integer> {
@@ -152,26 +155,11 @@ public class TrackObject implements Serializable{
         }
     }
 
-    private class importFavoriteTrack extends AsyncTask<String, Integer, Integer> {
+    private class ImportFavoriteTrack extends AsyncTask<String, Integer, Integer> {
 
         @Override
         protected Integer doInBackground(String... params) {
-            try {
-                FileInputStream fileIn = new FileInputStream(DIRECTORY_PATH.getPath() + "fav_track.uobj");
-                ObjectInputStream ois = new ObjectInputStream(fileIn);
-                ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP = (HashMap<String, SCTrack>) ois.readObject();
-                ois.close();
-                fileIn.close();
-            } catch (FileNotFoundException ex) {
-                extraReport = ex.toString();
-                return AN_ERROR_HAS_OCCRED;
-            } catch (IOException ex) {
-                extraReport = ex.toString();
-                return AN_ERROR_HAS_OCCRED;
-            } catch (ClassNotFoundException ex){
-                extraReport = ex.toString();
-                return AN_ERROR_HAS_OCCRED;
-            }
+            openFile(new File(DIRECTORY_PATH + "/" + FILE_NAME));
             return optimizeHashMapToFavoriteArrayList();
         }
 
@@ -182,26 +170,63 @@ public class TrackObject implements Serializable{
                 FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.ERROR_LOAD, extraReport);
             }
         }
+
+        protected void openFile(File file) {
+            try {
+                FileReader readedFile = new FileReader(file);
+                BufferedReader buffReader = new BufferedReader(readedFile);
+                String line;
+                JSONObject jsonObjectGetter;
+                SCTrack scTrackPointer;
+                Log.d(TAG_FILE_IMPORT , "Importing");
+                while ((line = buffReader.readLine()) != null) {
+                    scTrackPointer = new SCTrack();
+                    try {
+                        jsonObjectGetter = new JSONObject(line);
+                        scTrackPointer.setMainObject(jsonObjectGetter);
+                        scTrackPointer.setSongTitle(jsonObjectGetter.getString("title"));
+                        scTrackPointer.setArtWorkURL(jsonObjectGetter.getString("artwork_url"));
+                        scTrackPointer.setGenre(jsonObjectGetter.getString("genre"));
+                        scTrackPointer.setDuration(jsonObjectGetter.getString("duration"));
+                        scTrackPointer.setTrackURL(jsonObjectGetter.getString("uri"));
+                        scTrackPointer.setUser(jsonObjectGetter.getJSONObject("user"));
+                        scTrackPointer.setTrackID(jsonObjectGetter.getString("id"));
+                        if(!ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.containsKey(scTrackPointer.getTrackID())){
+                            Log.d(TAG_FILE_IMPORT , "Importing track to HASH MAP");
+                            ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.put(scTrackPointer.getTrackID() , scTrackPointer);
+                        }
+                        scTrackPointer = new SCTrack();
+                        Log.d(TAG_FILE_IMPORT , "Imported " + line);
+                    } catch (JSONException e) {
+                        Log.e(TAG_FILE_IMPORT , "<!> FAILED to import track " + line);
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                System.err.println(e.toString());
+            } catch (IOException e) {
+                System.err.println(e.toString());
+            }
+        }
+
     }
 
-    private class writeFavorite extends AsyncTask<String, Integer , Integer> implements Serializable{
+    private class WriteFavorite extends AsyncTask<String, Integer, Integer> implements Serializable {
 
         private static final long serialVersionUID = 6902068848094397669L;
 
         @Override
         protected Integer doInBackground(String... params) {
             try {
-                Log.d(TAG_FILE_EXPORT , "Directoty path is exist was " + DIRECTORY_PATH.exists());
-                if(!DIRECTORY_PATH.exists()) {
-                    Log.d(TAG_FILE_EXPORT , "File not exist creating directory and file");
+                Log.d(TAG_FILE_EXPORT, "Directoty path is exist was " + DIRECTORY_PATH.exists());
+                if (!DIRECTORY_PATH.exists()) {
+                    Log.d(TAG_FILE_EXPORT, "File not exist creating directory and file");
                     DIRECTORY_PATH.mkdirs();
                 }
-                FileOutputStream fileOut = new FileOutputStream(DIRECTORY_PATH.getPath() + "/fav_urandom.uobj");
+                /*FileOutputStream fileOut = new FileOutputStream(DIRECTORY_PATH.getPath() + "/fav_urandom.uobj");
                 ObjectOutputStream oos = new ObjectOutputStream(fileOut);
                 SavedObject savedObject = new SavedObject(ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP);
-                oos.writeObject(savedObject);
-                oos.close();
-                fileOut.close();
+                oos.writeObject(savedObject);*/
+                printStreamToFile(new FileOutputStream(DIRECTORY_PATH.getPath() + "/" + FILE_NAME));
             } catch (FileNotFoundException ex) {
                 extraReport = ex.toString();
                 return TrackObject.AN_ERROR_HAS_OCCRED;
@@ -220,13 +245,15 @@ public class TrackObject implements Serializable{
             }
         }
 
-        protected JSONArray getJsonFromHash(){
-            JSONArray tempArray = new JSONArray();
-            for(String id : ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.keySet()){
-                SCTrack trackPoint = ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.get(id);
-                tempArray.put(trackPoint);
+        private void printStreamToFile(FileOutputStream fileOutputStream) {
+            PrintStream oos = new PrintStream(fileOutputStream);
+            String title, duration, trackURL, artworkURL, streamURL, genre;
+            JSONObject user;
+            for (String id : ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.keySet()) {
+                oos.println(ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.get(id).getJSONMainObject().toString());
+                Log.d(TAG_FILE_EXPORT , ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.get(id).getJSONMainObject().toString());
             }
-            return tempArray;
+            oos.close();
         }
     }
 
@@ -242,6 +269,7 @@ public class TrackObject implements Serializable{
             for (int i = 0; i < tracks.length(); i++) {
                 jsonObjectGetter = tracks.getJSONObject(i);
                 if (apiVersion == 2.1) jsonObjectGetter = jsonObjectGetter.getJSONObject("track");
+                scTrackPointer.setMainObject(jsonObjectGetter);
                 scTrackPointer.setSongTitle(jsonObjectGetter.getString("title"));
                 scTrackPointer.setArtWorkURL(jsonObjectGetter.getString("artwork_url"));
                 scTrackPointer.setGenre(jsonObjectGetter.getString("genre"));
@@ -267,6 +295,7 @@ public class TrackObject implements Serializable{
             SCTrack scTrackPointer = new SCTrack();
             for (int i = 0; i < tracks.length(); i++) {
                 jsonObjectGetter = tracks.getJSONObject(i);
+                scTrackPointer.setMainObject(jsonObjectGetter);
                 scTrackPointer.setSongTitle(jsonObjectGetter.getString("title"));
                 scTrackPointer.setArtWorkURL(jsonObjectGetter.getString("artwork_url"));
                 scTrackPointer.setGenre(jsonObjectGetter.getString("genre"));
@@ -286,7 +315,7 @@ public class TrackObject implements Serializable{
         return LOAD_SUCCESFULLY;
     }
 
-    private int optimizeHashMapToFavoriteArrayList(){
+    private int optimizeHashMapToFavoriteArrayList() {
         ProgramStaticConstant.FAVORITE_TRACK.clear();
         for (String id : ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.keySet()) {
             ProgramStaticConstant.FAVORITE_TRACK.add(ProgramStaticConstant.FAVORITE_TRACK_HASH_MAP.get(id));

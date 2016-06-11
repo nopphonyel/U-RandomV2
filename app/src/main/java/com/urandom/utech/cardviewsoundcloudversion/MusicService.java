@@ -53,6 +53,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return IS_SERVICE_EXIST;
     }
 
+    /**
+     * When service created IS_SERVICE_EXIST will be true
+     * @param isServiceExist
+     */
     public static void setIsServiceExist(boolean isServiceExist) {
         IS_SERVICE_EXIST = isServiceExist;
     }
@@ -122,11 +126,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     .setContentIntent(pendingIntent)
                     .setOngoing(true)
                     .addAction(android.R.drawable.ic_media_previous, "Previous", ppreviousIntent)
-                    .addAction(android.R.drawable.ic_media_pause, "Play/Pause", ppauseIntent)
+                    .addAction(android.R.drawable.ic_media_play, "Play/Pause", ppauseIntent)
                     .addAction(android.R.drawable.ic_media_next, "Next", pnextIntent)
                     .build();
         } catch (JSONException e) {
             e.printStackTrace();
+            notification = new NotificationCompat.Builder(this)
+                    .setContentTitle(playingTrack.getSongTitle())
+                    .setContentText("Error to get USER_NAME")
+                    .setSmallIcon(R.drawable.ic_toolbar)
+                    .setContentIntent(pendingIntent)
+                    .setOngoing(true)
+                    .addAction(android.R.drawable.ic_media_previous, "Previous", ppreviousIntent)
+                    .addAction(android.R.drawable.ic_media_play, "Play/Pause", ppauseIntent)
+                    .addAction(android.R.drawable.ic_media_next, "Next", pnextIntent)
+                    .build();
         }
         startForeground(ProgramStaticConstant.ForegroundServiceAction.FOREGROUND_SERVICE, notification);
 
@@ -139,12 +153,17 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return false;
     }
 
+    /**
+     * Get playing track ID
+     * @return
+     */
     public static String getPlayingTrackID() {
         return playingTrackID;
     }
 
+
     public void playSong() {
-        if (songPosition < ProgramStaticConstant.TRACK.size() && songPosition >= 0) {
+        if (songPosition < que.size() && songPosition >= 0) {
             player.reset();
             imNotReadyForPlaying = true;
             setIsPlaying(true);
@@ -174,7 +193,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Log.e("MusicService", "Error for somthing" + e.toString());
             }
         } else {
-            if (songPosition > ProgramStaticConstant.TRACK.size()) {
+            if (songPosition > que.size()) {
                 stopMusic();
             } else if (songPosition < 0) {
                 fastForword();
@@ -186,7 +205,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         ProgramStaticConstant.setTrackPlayingNo(songPosition + 1);
         setSong(ProgramStaticConstant.getTrackPlayingNo()); //Set songPosition variable
 
-        MainActivity.trackListAdapter.notifyDataSetChanged();
+        updateTrackAdapter();
         playSong();
     }
 
@@ -195,7 +214,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             ProgramStaticConstant.setTrackPlayingNo(songPosition - 1);
             setSong(ProgramStaticConstant.getTrackPlayingNo()); //Set songPosition variable
 
-            MainActivity.trackListAdapter.notifyDataSetChanged();
+            updateTrackAdapter();
             playSong();
         } else {
             gotoMusic(0);
@@ -230,7 +249,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         ProgramStaticConstant.setTrackPlayingNo(-1);
         setIsPlaying(false);
         MainActivity.updateFloatingActionButton();
-        MainActivity.trackListAdapter.notifyDataSetChanged();
+        updateTrackAdapter();
         player.stop();
     }
 
@@ -260,7 +279,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void stopRunning(){
         IS_SERVICE_EXIST = false;
+        stopMusic();
         stopSelf();
+    }
+
+    private void updateTrackAdapter(){
+        if(MainActivity.MAIN_ACTIVITY_WAS_CREATED)
+            MainActivity.trackListAdapter.notifyDataSetChanged();
+        if(FavoriteActivity.FAVORITE_ACTIVITY_WAS_CREATED)
+            FavoriteActivity.favoriteTrackListAdapter.notifyDataSetChanged();
     }
 
     public static void setList(ArrayList<SCTrack> track) {

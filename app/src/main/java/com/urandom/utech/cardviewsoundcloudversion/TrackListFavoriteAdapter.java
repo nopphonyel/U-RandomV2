@@ -59,6 +59,8 @@ public class TrackListFavoriteAdapter extends RecyclerView.Adapter<TrackListFavo
             holder.trackOwner.setText(track.getUserName());
         } catch (JSONException e) {
             Log.e("ADAPTER" , "SET USER ERROR : "+e.toString());
+        } catch (NullPointerException e){
+            holder.trackOwner.setText("USERNAME_ERROR");
         }
 
         if (track.getTrackGenre() == null || track.getTrackGenre().equalsIgnoreCase("")) {
