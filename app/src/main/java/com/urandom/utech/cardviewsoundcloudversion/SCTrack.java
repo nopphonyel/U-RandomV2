@@ -10,7 +10,7 @@ import org.json.JSONObject;
  * To contain all information in each track
  * Created by nopphon on 4/18/16.
  */
-public class SCTrack {
+public class SCTrack{
 
     public void setSongTitle(String songTitle) {
         this.songTitle = songTitle;

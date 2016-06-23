@@ -88,10 +88,9 @@ public class TrackObject implements Serializable {
     }
 
     public void getFavoriteTrack() {
-        //FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.ON_LOAD, null);
         new ImportFavoriteTrack().execute();
         if (optimizeHashMapToFavoriteArrayList() == LOAD_SUCCESFULLY) {
-            FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.LOAD_SUCCESS, null);
+            FragmentFavorite.setVisibilityOfComponent(FragmentFavorite.LOAD_SUCCESS, null);
         }
         //new importFavoriteTrack().execute();
     }
@@ -149,9 +148,9 @@ public class TrackObject implements Serializable {
         protected void onPostExecute(Integer code) {
             Log.e(TAG_INTERNET, "RETURN CODE IS : " + code);
             if (code == LOAD_SUCCESFULLY)
-                MainActivity.setVisibilityOfComponent(MainActivity.LOAD_SUCCESS);
+                FragmentRandom.setVisibilityOfComponent(FragmentRandom.LOAD_SUCCESS);
             if (code == NO_CONNECTION || code == URL_ERROR || code == AN_ERROR_HAS_OCCRED)
-                MainActivity.setVisibilityOfComponent(MainActivity.ERROR_LOAD);
+                FragmentRandom.setVisibilityOfComponent(FragmentRandom.ERROR_LOAD);
         }
     }
 
@@ -165,9 +164,9 @@ public class TrackObject implements Serializable {
 
         protected void onPostExecute(Integer code) {
             if (code == LOAD_SUCCESFULLY) {
-                FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.LOAD_SUCCESS, null);
+                FragmentFavorite.setVisibilityOfComponent(FragmentFavorite.LOAD_SUCCESS, null);
             } else if (code == AN_ERROR_HAS_OCCRED) {
-                FavoriteActivity.setVisibilityOfComponent(FavoriteActivity.ERROR_LOAD, extraReport);
+                FragmentFavorite.setVisibilityOfComponent(FragmentFavorite.ERROR_LOAD, extraReport);
             }
         }
 
@@ -228,9 +227,6 @@ public class TrackObject implements Serializable {
                 oos.writeObject(savedObject);*/
                 printStreamToFile(new FileOutputStream(DIRECTORY_PATH.getPath() + "/" + FILE_NAME));
             } catch (FileNotFoundException ex) {
-                extraReport = ex.toString();
-                return TrackObject.AN_ERROR_HAS_OCCRED;
-            } catch (IOException ex) {
                 extraReport = ex.toString();
                 return TrackObject.AN_ERROR_HAS_OCCRED;
             }

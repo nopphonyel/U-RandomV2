@@ -1,6 +1,7 @@
 package com.urandom.utech.cardviewsoundcloudversion;
 
 /**
+ * This class store client ID and API URL
  * Created by nopphon on 4/18/16.
  */
 public class Config {

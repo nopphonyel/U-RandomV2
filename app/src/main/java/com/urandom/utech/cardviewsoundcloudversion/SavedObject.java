@@ -7,6 +7,9 @@ import java.util.HashMap;
  * Saved object
  * Created by nopphonyel on 5/24/16.
  */
+
+//Unused Code
+    /**
 public class SavedObject implements Serializable {
     private static final long serialVersionUID = 8730368233789769177L;
     private HashMap<String , SCTrack> savedMap;
@@ -26,3 +29,4 @@ public class SavedObject implements Serializable {
         return savedMap;
     }
 }
+     */

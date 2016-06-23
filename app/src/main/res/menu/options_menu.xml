@@ -2,9 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/menu_favorite"
-        android:title="Favorite Track"/>
-
     <item android:id="@+id/refresh_track"
         android:title="Refresh track"
         android:icon="@android:drawable/stat_notify_sync" />

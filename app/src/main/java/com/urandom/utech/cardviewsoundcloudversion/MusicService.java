@@ -23,15 +23,18 @@ import java.util.logging.LogRecord;
  * Service file
  * Created by tewlyhackyizz on 21-May-16.
  */
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener{
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
     private static String playingTrackID = new String();
     private static final String TAG_SERVICE = "MusicService.class";
     public static MediaPlayer player;
-    public static ArrayList<SCTrack> que;
+
+    public static ArrayList<SCTrack> que = new ArrayList<>();
+    public static SCTrack playingTrack;
+
     private int songPosition = 0;
     private final IBinder musicBind = new MusicBinder();
     private static boolean IS_PLAYING = false;
-    public static SCTrack playingTrack;
+    private static boolean IS_STOPPED = true;
 
     protected Notification notification;
 
@@ -49,12 +52,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         IS_PLAYING = isPlaying;
     }
 
+    public static void setIsStopped(boolean isStopped) {
+        IS_STOPPED = isStopped;
+    }
+
+    public static boolean isStopped() {
+        return IS_STOPPED;
+    }
+
     public static boolean isServiceExist() {
         return IS_SERVICE_EXIST;
     }
 
     /**
      * When service created IS_SERVICE_EXIST will be true
+     *
      * @param isServiceExist
      */
     public static void setIsServiceExist(boolean isServiceExist) {
@@ -91,14 +103,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT)) {
             Log.i(TAG_SERVICE, "Clicked Next");
             fastForword();
-        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.STOP_SERVICE)){
+        } else if (intent.getAction().equals(ProgramStaticConstant.ForegroundServiceAction.STOP_SERVICE)) {
             stopSelf();
         }
         return START_NOT_STICKY;
     }
 
     public void showNotification() {
-        Intent notificationIntent = new Intent(this, NowPlaying.class);
+        Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_NOW_PLAYING);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
@@ -115,9 +127,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         nextIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.ACTION_PLAY_NEXT);
         PendingIntent pnextIntent = PendingIntent.getService(this, 0, nextIntent, 0);
 
-        Intent stopIntent = new Intent(this , MusicService.class);
+        Intent stopIntent = new Intent(this, MusicService.class);
         stopIntent.setAction(ProgramStaticConstant.ForegroundServiceAction.STOP_SERVICE);
-        PendingIntent pstopIntent = PendingIntent.getService(this, 0 , stopIntent , 0);
+        PendingIntent pstopIntent = PendingIntent.getService(this, 0, stopIntent, 0);
         try {
             notification = new NotificationCompat.Builder(this)
                     .setContentTitle(playingTrack.getSongTitle())
@@ -155,6 +167,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     /**
      * Get playing track ID
+     *
      * @return
      */
     public static String getPlayingTrackID() {
@@ -167,18 +180,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             player.reset();
             imNotReadyForPlaying = true;
             setIsPlaying(true);
+            setIsStopped(false);
             Log.e(TAG_SERVICE, "preparing track");
-            SCTrack playSong = que.get(songPosition);
-            playingTrack = playSong;
-            playingTrackID = playSong.getTrackID();
+            playingTrack = que.get(songPosition);
+            playingTrackID = playingTrack.getTrackID();
 
-            MainActivity.updateFloatingActionButton();
-            if (NowPlaying.ableToUpdateComponent) {
+            if (NowPlaying.ableToUpdateComponent && FragmentMusicDetail.FRAGMENT_WAS_CREATED) {
                 NowPlaying.updateComponent();
             }
 
+            MainActivity.updateFloatingActionButton();
+
             showNotification();
-            String url = playSong.getTrackURL() + "/stream" + "?" + Config.CLIENT_ID;
+            String url = playingTrack.getTrackURL() + "/stream" + "?" + Config.CLIENT_ID;
             Log.d(TAG_SERVICE, url);
             try {
                 player.setDataSource(url);
@@ -192,6 +206,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             } catch (IllegalStateException e) {
                 Log.e("MusicService", "Error for somthing" + e.toString());
             }
+
         } else {
             if (songPosition > que.size()) {
                 stopMusic();
@@ -248,6 +263,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void stopMusic() {
         ProgramStaticConstant.setTrackPlayingNo(-1);
         setIsPlaying(false);
+        setIsStopped(true);
         MainActivity.updateFloatingActionButton();
         updateTrackAdapter();
         player.stop();
@@ -277,21 +293,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         player.setOnErrorListener(this);
     }
 
-    public void stopRunning(){
+    public void stopRunning() {
         IS_SERVICE_EXIST = false;
         stopMusic();
         stopSelf();
     }
 
-    private void updateTrackAdapter(){
-        if(MainActivity.MAIN_ACTIVITY_WAS_CREATED)
-            MainActivity.trackListAdapter.notifyDataSetChanged();
-        if(FavoriteActivity.FAVORITE_ACTIVITY_WAS_CREATED)
-            FavoriteActivity.favoriteTrackListAdapter.notifyDataSetChanged();
+    private void updateTrackAdapter() {
+        if (MainActivity.MAIN_ACTIVITY_WAS_CREATED)
+            FragmentRandom.trackListAdapter.notifyDataSetChanged();
+        if (FragmentFavorite.FAVORITE_ACTIVITY_WAS_CREATED)
+            FragmentFavorite.favoriteTrackListAdapter.notifyDataSetChanged();
     }
 
     public static void setList(ArrayList<SCTrack> track) {
-        que = track;
+        que = new ArrayList<SCTrack>(track);
     }
 
 

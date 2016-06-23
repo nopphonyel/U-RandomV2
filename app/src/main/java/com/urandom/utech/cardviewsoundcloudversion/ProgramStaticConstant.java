@@ -34,12 +34,13 @@ public class ProgramStaticConstant {
 
     public static MusicService musicService;
     //Create new ServiceConnection Interface variable
+
     public static ServiceConnection musicConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
             musicService = binder.getService();
-            musicService.setList(ProgramStaticConstant.TRACK);
+            //musicService.setList(ProgramStaticConstant.TRACK);
             Log.d(TAG_BIND_SERVICE,"Service now connected");
         }
 
@@ -55,7 +56,7 @@ public class ProgramStaticConstant {
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
             musicService = binder.getService();
-            musicService.setList(ProgramStaticConstant.FAVORITE_TRACK);
+            MusicService.setList(ProgramStaticConstant.FAVORITE_TRACK);
             Log.d(TAG_BIND_SERVICE,"Service now connected");
         }
 

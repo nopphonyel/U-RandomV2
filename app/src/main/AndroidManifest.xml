@@ -31,10 +31,6 @@
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"/>
 
-        <activity
-            android:name=".FavoriteActivity"
-            android:configChanges="orientation|screenSize"/>
-
         <service
             android:name=".MusicService"
             android:icon="@drawable/ic_toolbar" />
